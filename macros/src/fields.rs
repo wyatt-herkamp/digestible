@@ -1,7 +1,6 @@
 use crate::consts::digest_path;
 use proc_macro2::{Ident, TokenStream};
-use quote::{quote, ToTokens};
-use syn::{Path, Type};
+use quote::{quote};
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 
@@ -78,7 +77,7 @@ impl Field {
             todo!("digest_with")
         } else {
             quote! {
-                <#ty as #digestible>::digest_to_writer(#ident, writer)?;
+                <#ty as #digestible>::digest_to_writer(#ident, #writer)?;
             }
         };
         Some(result)

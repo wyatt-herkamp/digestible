@@ -1,8 +1,7 @@
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::{ TokenStream};
 use quote::{format_ident, quote};
-use syn::spanned::Spanned;
-use syn::{DeriveInput, Error, Meta};
-use syn::{Field as SynField, Result};
+use syn::{DeriveInput, Error};
+use syn::{Result};
 use crate::consts::digest_path;
 use crate::fields::Field;
 
