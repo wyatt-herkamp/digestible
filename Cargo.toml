@@ -1,0 +1,20 @@
+[package]
+name = "digestible"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+digest = { version = "0.10", optional = true }
+byteorder = "1"
+digest-macros= {path="macros",optional = true}
+base64 = { version = "0.21", optional = true }
+[dev-dependencies]
+sha2 = "0.10"
+base64 = "0.21"
+[features]
+default = ["digest","derive"]
+derive = ["digest-macros"]
+
+
