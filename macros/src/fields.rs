@@ -49,7 +49,6 @@ impl Parse for FieldAttr {
             use_std_hash,
             digest_with,
         };
-        println!("{:?}", attr);
         Ok(attr)
     }
 }
@@ -89,27 +88,6 @@ impl Field {
             attr,
         })
     }
-    pub fn digest(&self, writer: &Ident) -> Option<TokenStream> {
-        if self.attr.skip {
-            return None;
-        } else if self.attr.use_std_hash {
-            return Some(self.use_std_hash(writer));
-        }
-        let digestible = digest_path();
-        let ident = &self.ident;
-        let ty = &self.ty;
-        let result = if let Some(digest_with) = &self.attr.digest_with {
-            let digest_with_path = digest_with_path();
-            quote! {
-                <#digest_with as #digest_with_path>::digest::<_>(#ident, #writer);
-            }
-        } else {
-            quote! {
-                <#ty as #digestible>::digest_to_writer(#ident, #writer);
-            }
-        };
-        Some(result)
-    }
     pub fn digest_with_order(&self, endian: &Ident, writer: &Ident) -> Option<TokenStream> {
         if self.attr.skip {
             return None;
@@ -122,11 +100,11 @@ impl Field {
         let result = if let Some(digest_with) = &self.attr.digest_with {
             let digest_with_path = digest_with_path();
             quote! {
-                <#digest_with as #digest_with_path>::digest_with_order::<#endian,_>(#ident, #writer);
+                <#digest_with as #digest_with_path>::digest::<#endian,_>(#ident, #writer);
             }
         } else {
             quote! {
-                <#ty as #digestible>::digest_to_writer_with_order::<#endian, _>(#ident, #writer);
+                <#ty as #digestible>::digest::<#endian, _>(#ident, #writer);
             }
         };
         Some(result)

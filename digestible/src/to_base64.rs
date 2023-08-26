@@ -3,6 +3,7 @@ use crate::Digestible;
 use alloc::string::String;
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
+use byteorder::ByteOrder;
 use core::fmt::{Debug, Formatter};
 
 pub struct ToBase64<D>(D);
@@ -61,11 +62,11 @@ where
 {
     type Target = String;
 
-    fn digest<DI: Digestible>(self, data: &DI) -> Self::Target {
-        Self::encode_base64(self.0.digest(data))
+    fn digest<B: ByteOrder, DI: Digestible>(self, data: &DI) -> Self::Target {
+        Self::encode_base64(self.0.digest::<B, DI>(data))
     }
 
-    fn digest_no_return<DI: Digestible>(&mut self, data: &DI) {
-        self.0.digest_no_return(data)
+    fn digest_no_return<B: ByteOrder, DI: Digestible>(&mut self, data: &DI) {
+        self.0.digest_no_return::<B, DI>(data)
     }
 }
