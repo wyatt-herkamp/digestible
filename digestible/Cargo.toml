@@ -1,0 +1,32 @@
+[package]
+name = "digestible"
+version = "0.1.0"
+edition = "2021"
+authors = ["Wyatt Herkamp <wherkamp@gmail.com>"]
+description = "A more dynamic Hash and Hasher interface"
+license = "MIT OR Apache-2.0"
+categories = ["cryptography"]
+keywords = ["digest", "crypto", "hash"]
+repository = "https://github.com/wyatt-herkamp/digestible"
+readme = "README.md"
+rust-version="1.70"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+digest = { version = "0.10", optional = true }
+byteorder = "1"
+digest-macros= {path="../macros",optional = true, version = "0.1.0"}
+base64 = { version = "0.21", optional = true }
+chrono = { version = "0.4", optional = true }
+bytes = { version = "1" , optional = true}
+[dev-dependencies]
+sha2 = "0.10"
+base64 = "0.21"
+digest-macros= {path="../macros"}
+[features]
+default = ["digest","derive"]
+derive = ["digest-macros"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
