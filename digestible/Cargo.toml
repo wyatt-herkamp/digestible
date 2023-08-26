@@ -15,17 +15,17 @@ rust-version="1.70"
 [dependencies]
 digest = { version = "0.10", optional = true }
 byteorder = "1"
-digest-macros= {path="../macros",optional = true, version = "0.1.0"}
+digestible-macros= {path="../macros",optional = true, version = "0.1.0"}
 base64 = { version = "0.21", optional = true }
 chrono = { version = "0.4", optional = true }
 bytes = { version = "1" , optional = true}
 [dev-dependencies]
 sha2 = "0.10"
 base64 = "0.21"
-digest-macros= {path="../macros"}
+digestible-macros= {path="../macros"}
 [features]
 default = ["digest","derive"]
-derive = ["digest-macros"]
+derive = ["digestible-macros"]
 
 [package.metadata.docs.rs]
 all-features = true
