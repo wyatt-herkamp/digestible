@@ -3,19 +3,19 @@ use base64::Engine;
 use digestible::digester::Digester;
 use digestible::digestible::DigestWith;
 use digestible::to_base64::IntoBase64;
+use digestible::DigestWriter;
+use digestible_macros::Digestible;
 use sha2::Digest;
 use std::io::Write;
 use std::time::Duration;
-use digestible_macros::Digestible;
 
 pub struct DurationDigestWith;
 impl DigestWith for DurationDigestWith {
     type Digest = Duration;
 
-    fn digest<W: Write>(digest: &Self::Digest, writer: &mut W) -> std::io::Result<()> {
-        writer.write_all(&digest.as_secs().to_ne_bytes())?;
-        writer.write_all(&digest.subsec_nanos().to_ne_bytes())?;
-        Ok(())
+    fn digest<W: DigestWriter>(digest: &Self::Digest, writer: &mut W) {
+        writer.write(&digest.as_secs().to_ne_bytes());
+        writer.write(&digest.subsec_nanos().to_ne_bytes());
     }
 }
 #[derive(Digestible)]

@@ -44,19 +44,17 @@ pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
             extern crate digestible as _digestible;
             #[automatically_derived]
             impl #digestible for #name {
-                fn digest_to_writer<W: std::io::Write>(&self, #writer: &mut W) -> std::io::Result<()> {
+                fn digest_to_writer<W: _digestible::DigestWriter>(&self, #writer: &mut W){
                     let Self { #(#field_names),* } = self;
 
                     #(#write_fields)*
-                    return Ok(());
                 }
-                fn digest_to_writer_with_order<#order: _digestible::ByteOrder, W: std::io::Write>(
+                fn digest_to_writer_with_order<#order: _digestible::ByteOrder, W: _digestible::DigestWriter>(
                     &self,
                     writer: &mut W,
-                ) -> std::io::Result<()> {
+                ) {
                     let Self { #(#field_names),* } = self;
                     #(#write_fields_order)*
-                    return Ok(());
                 }
             }
         };

@@ -24,9 +24,10 @@ sha2 = "0.10"
 base64 = "0.21"
 digestible-macros= {path="../macros"}
 [features]
-default = ["digest","derive"]
+default = ["digest","derive", "std", "alloc"]
 derive = ["digestible-macros"]
-
+std= []
+alloc = []
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]

@@ -1,73 +1,50 @@
+#[cfg(feature = "alloc")]
 mod alloc_types;
 mod atomic;
+mod core_types;
 mod extern_crates;
-pub mod hash_hack;
 mod internal_macros;
-mod num_types;
+#[cfg(feature = "std")]
+mod std_types;
 
-use byteorder::ByteOrder;
 use core::hash::Hasher;
-use std::io::Write;
+#[cfg(feature = "alloc")]
+pub use alloc_types::DigestibleAlloc;
+
+use crate::digester_writer::DigestWriter;
+use byteorder::ByteOrder;
+use crate::hash_digester::DigesterUsingHasher;
+
 /// A data type that can be converted into a digest.
 pub trait Digestible {
-    fn digest_to_writer<W: Write>(&self, writer: &mut W) -> std::io::Result<()>;
+    fn digest_to_writer<W: DigestWriter>(&self, writer: &mut W);
 
     #[inline(always)]
-    fn digest_owned(&self) -> Vec<u8> {
-        let mut digest = Vec::new();
-        self.digest_to_writer(&mut digest).unwrap();
-        digest
-    }
-
-    #[inline(always)]
-    fn digest_owned_with_order<B: ByteOrder>(&self) -> Vec<u8> {
-        let mut digest = Vec::new();
-        self.digest_to_writer_with_order::<B, _>(&mut digest)
-            .unwrap();
-        digest
-    }
-
-    #[inline(always)]
-    fn digest_to_writer_with_order<B: ByteOrder, W: Write>(
-        &self,
-        writer: &mut W,
-    ) -> std::io::Result<()> {
+    fn digest_to_writer_with_order<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
         Self::digest_to_writer(self, writer)
     }
 
-    fn digest_to_hasher(&self, hasher: &mut impl Hasher) {
-        let digest_owned = self.digest_owned();
-        hasher.write(&digest_owned);
+    #[doc(hidden)]
+    fn hash(&self, hasher: &mut impl Hasher) {
+        let mut digester = DigesterUsingHasher(hasher);
+        self.digest_to_writer(&mut digester);
     }
 }
+
 impl<'a, D: Digestible> Digestible for &'a D {
     #[inline(always)]
-    fn digest_to_writer<W: Write>(&self, writer: &mut W) -> std::io::Result<()> {
+    fn digest_to_writer<W: DigestWriter>(&self, writer: &mut W) {
         (*self).digest_to_writer(writer)
     }
     #[inline(always)]
-    fn digest_owned(&self) -> Vec<u8> {
-        (*self).digest_owned()
-    }
-    #[inline(always)]
-    fn digest_owned_with_order<B: ByteOrder>(&self) -> Vec<u8> {
-        (*self).digest_owned_with_order::<B>()
-    }
-    #[inline(always)]
-    fn digest_to_writer_with_order<B: ByteOrder, W: Write>(
-        &self,
-        writer: &mut W,
-    ) -> std::io::Result<()> {
+    fn digest_to_writer_with_order<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
         (*self).digest_to_writer_with_order::<B, _>(writer)
     }
 }
 pub trait DigestWith {
     type Digest;
-    fn digest<W: Write>(digest: &Self::Digest, writer: &mut W) -> std::io::Result<()>;
-    fn digest_with_order<B: ByteOrder, W: Write>(
-        digest: &Self::Digest,
-        writer: &mut W,
-    ) -> std::io::Result<()> {
+    fn digest<W: DigestWriter>(digest: &Self::Digest, writer: &mut W);
+    fn digest_with_order<B: ByteOrder, W: DigestWriter>(digest: &Self::Digest, writer: &mut W) {
         Self::digest::<W>(digest, writer)
     }
 }

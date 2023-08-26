@@ -101,11 +101,11 @@ impl Field {
         let result = if let Some(digest_with) = &self.attr.digest_with {
             let digest_with_path = digest_with_path();
             quote! {
-                <#digest_with as #digest_with_path>::digest::<_>(#ident, #writer)?;
+                <#digest_with as #digest_with_path>::digest::<_>(#ident, #writer);
             }
         } else {
             quote! {
-                <#ty as #digestible>::digest_to_writer(#ident, #writer)?;
+                <#ty as #digestible>::digest_to_writer(#ident, #writer);
             }
         };
         Some(result)
@@ -122,11 +122,11 @@ impl Field {
         let result = if let Some(digest_with) = &self.attr.digest_with {
             let digest_with_path = digest_with_path();
             quote! {
-                <#digest_with as #digest_with_path>::digest_with_order::<#endian,_>(#ident, #writer)?;
+                <#digest_with as #digest_with_path>::digest_with_order::<#endian,_>(#ident, #writer);
             }
         } else {
             quote! {
-                <#ty as #digestible>::digest_to_writer_with_order::<#endian, _>(#ident, #writer)?;
+                <#ty as #digestible>::digest_to_writer_with_order::<#endian, _>(#ident, #writer);
             }
         };
         Some(result)

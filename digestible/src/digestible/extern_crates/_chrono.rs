@@ -1,29 +1,27 @@
 ///! This file is used to implement Digestible for chrono types.
 ///
 /// This is done by using the HashableHack struct to write the data to a writer.
-use crate::digestible::hash_hack::HashableHack;
-use crate::digestible::internal_macros::impl_for_hashable_hack;
+use crate::digestible::internal_macros::{impl_for_hashable_hack, use_hasher};
 use crate::Digestible;
 use chrono::{DateTime, Duration, NaiveDateTime, NaiveTime, TimeZone};
-use std::hash::Hash;
-use std::io::{Error, Write};
+use crate::hash_digester::HashableHack;
+
 
 impl_for_hashable_hack!(Duration);
 impl_for_hashable_hack!(NaiveTime);
 impl_for_hashable_hack!(NaiveDateTime);
 
 impl<Tz: TimeZone> Digestible for DateTime<Tz> {
-    fn digest_to_writer<W: Write>(&self, writer: &mut W) -> std::io::Result<()> {
+    fn digest_to_writer<W: crate::DigestWriter>(&self, writer: &mut W) {
         let mut hashable_hack = HashableHack::new(writer);
         self.hash(&mut hashable_hack);
-        Ok(())
     }
+    use_hasher!();
 }
 #[cfg(test)]
 mod tests {
-    use crate::{Digester, Digestible, IntoBase64};
+    use crate::{DigestWriter, Digester, Digestible, IntoBase64};
     use sha2::Digest;
-    use std::io::Write;
     pub struct ChronoTests {
         pub duration: chrono::Duration,
         pub naive_time: chrono::NaiveTime,
@@ -41,12 +39,11 @@ mod tests {
         }
     }
     impl Digestible for ChronoTests {
-        fn digest_to_writer<W: Write>(&self, writer: &mut W) -> std::io::Result<()> {
-            self.duration.digest_to_writer(writer)?;
-            self.naive_time.digest_to_writer(writer)?;
-            self.naive_date_time.digest_to_writer(writer)?;
-            self.date_time.digest_to_writer(writer)?;
-            Ok(())
+        fn digest_to_writer<W: DigestWriter>(&self, writer: &mut W) {
+            self.duration.digest_to_writer(writer);
+            self.naive_time.digest_to_writer(writer);
+            self.naive_date_time.digest_to_writer(writer);
+            self.date_time.digest_to_writer(writer);
         }
     }
     #[test]
