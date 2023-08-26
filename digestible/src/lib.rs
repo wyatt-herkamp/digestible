@@ -10,4 +10,4 @@ pub mod to_base64;
 #[cfg(feature = "base64")]
 pub use to_base64::{IntoBase64, ToBase64};
 #[cfg(feature = "derive")]
-pub use digest_macros::Digestible;
+pub use digestible_macros::Digestible;

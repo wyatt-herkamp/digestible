@@ -1,12 +1,13 @@
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
-use digest_macros::Digestible;
 use digestible::digester::Digester;
 use digestible::digestible::DigestWith;
 use digestible::to_base64::IntoBase64;
 use sha2::Digest;
 use std::io::Write;
 use std::time::Duration;
+use digestible_macros::Digestible;
+
 pub struct DurationDigestWith;
 impl DigestWith for DurationDigestWith {
     type Digest = Duration;
