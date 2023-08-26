@@ -1,43 +1,49 @@
 use crate::digestible::Digestible;
 use byteorder::ByteOrder;
 use std::io::{Error, Write};
+impl Digestible for bool {
+    fn digest_to_writer<W: Write>(&self, writer: &mut W) -> std::io::Result<()> {
+        writer.write_all(&[*self as u8])
+    }
+}
+
 macro_rules! digestible_for_num {
     ($num:ty) => {
         impl Digestible for $num {
-            type Digest<'a> = [u8;1] where Self: 'a;
-
-            fn digest(&self) -> Self::Digest<'_> {
-                [*self as u8]
-            }
             #[inline(always)]
-            fn constant_size() -> bool {
-                true
-            }
-
             fn digest_to_writer<W: Write>(&self, writer: &mut W) -> Result<(), Error> {
                 writer.write_all(&[*self as u8])
             }
+            super::internal_macros::use_hasher!();
+            super::internal_macros::digest_owned_with_size!(1);
+        }
+    };
+    ($num:ty as $rep:ty, $write:ident) => {
+        impl Digestible for $num {
+            fn digest_to_writer<W: Write>(&self, writer: &mut W) -> Result<(), Error> {
+                writer.write_all(&self.to_ne_bytes())
+            }
+            #[inline(always)]
+            fn digest_to_writer_with_order<B: ByteOrder, W: Write>(
+                &self,
+                writer: &mut W,
+            ) -> Result<(), Error> {
+                let mut buf = [0u8; std::mem::size_of::<$num>()];
+                B::$write(&mut buf, *self as $rep, std::mem::size_of::<$num>());
+                writer.write_all(&buf)
+            }
+            super::internal_macros::use_hasher!();
+            super::internal_macros::digest_owned_with_size!(std::mem::size_of::<$num>);
         }
     };
     ($num:ty, $size:literal, $write:ident) => {
         impl Digestible for $num {
-            type Digest<'a> = [u8; $size] where Self: 'a ;
-
-            fn digest(&self) -> Self::Digest<'_> {
-                self.to_ne_bytes()
-            }
-            #[inline(always)]
-            fn constant_size() -> bool {
-                true
-            }
-            fn digest_with_order<B: ByteOrder>(&self) -> Self::Digest<'_> {
-                let mut buf = [0u8; $size];
-                B::$write(&mut buf, *self);
-                buf
-            }
+            /// Writes the digestible data to the writer.
+            /// Using the native byte order
             fn digest_to_writer<W: Write>(&self, writer: &mut W) -> Result<(), Error> {
                 writer.write_all(&self.to_ne_bytes())
             }
+            #[inline(always)]
             fn digest_to_writer_with_order<B: ByteOrder, W: Write>(
                 &self,
                 writer: &mut W,
@@ -46,6 +52,7 @@ macro_rules! digestible_for_num {
                 B::$write(&mut buf, *self);
                 writer.write_all(&buf)
             }
+            super::internal_macros::digest_owned_with_size!($size);
         }
     };
 }
@@ -60,6 +67,12 @@ digestible_for_num!(i16, 2, write_i16);
 digestible_for_num!(i32, 4, write_i32);
 digestible_for_num!(i64, 8, write_i64);
 digestible_for_num!(i128, 16, write_i128);
+digestible_for_num!(f32, 4, write_f32);
+digestible_for_num!(f64, 8, write_f64);
+
+digestible_for_num!(usize as u64, write_uint);
+digestible_for_num!(isize as i64, write_int);
+
 #[cfg(test)]
 mod tests {
     use crate::digestible::Digestible;
@@ -68,8 +81,6 @@ mod tests {
         ($num:ty) => {
             let byte: $num = 1 as $num;
             let num_as_bytes = byte.to_ne_bytes();
-            let d = byte.digest();
-            assert_eq!(d, num_as_bytes);
             let d = byte.digest_owned();
             assert_eq!(d, num_as_bytes);
         };
@@ -92,9 +103,6 @@ mod tests {
             let byte: $num = 1 as $num;
             let mut wtr = vec![0u8; std::mem::size_of::<$num>()];
             <$endian>::$write(&mut wtr, byte);
-
-            let d = byte.digest_with_order::<$endian>();
-            assert_eq!(d.to_vec(), wtr);
             let d = byte.digest_owned_with_order::<$endian>();
             assert_eq!(d, wtr);
         };

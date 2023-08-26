@@ -2,7 +2,9 @@
 name = "digest-macros"
 version = "0.1.0"
 edition = "2021"
-
+authors = ["Wyatt Herkamp <wherkamp@gmail.com>"]
+description = "Macros for generating digest implementations"
+license = "MIT OR Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]

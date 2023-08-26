@@ -1,29 +1,16 @@
 mod alloc_types;
 mod atomic;
+mod extern_crates;
+pub mod hash_hack;
+mod internal_macros;
 mod num_types;
 
 use byteorder::ByteOrder;
-use std::io;
+use core::hash::Hasher;
 use std::io::Write;
-
+/// A data type that can be converted into a digest.
 pub trait Digestible {
-    type Digest<'a>: AsRef<[u8]>
-    where
-        Self: 'a;
-    /// For Num Types, this is true
-    #[inline(always)]
-    fn constant_size() -> bool {
-        false
-    }
-    #[inline(always)]
-    fn supports_borrowed_digest() -> bool {
-        false
-    }
-    /// Support returning a Digest Reference
-    fn digest(&self) -> Self::Digest<'_>{
-        unimplemented!("Can not digest Struct into Ref")
-    }
-    fn digest_to_writer<W: Write>(&self, writer: &mut W) -> Result<(), io::Error>;
+    fn digest_to_writer<W: Write>(&self, writer: &mut W) -> std::io::Result<()>;
 
     #[inline(always)]
     fn digest_owned(&self) -> Vec<u8> {
@@ -31,17 +18,12 @@ pub trait Digestible {
         self.digest_to_writer(&mut digest).unwrap();
         digest
     }
+
     #[inline(always)]
-    fn digest_with_order<B: ByteOrder>(&self) -> Self::Digest<'_> {
-        self.digest()
-    }
-    #[inline(always)]
-    fn digest_owned_with_order<B: ByteOrder>(&self) -> Vec<u8>
-    where
-        Self: Sized,
-    {
+    fn digest_owned_with_order<B: ByteOrder>(&self) -> Vec<u8> {
         let mut digest = Vec::new();
-        self.digest_to_writer_with_order::<B,_>(&mut digest).unwrap();
+        self.digest_to_writer_with_order::<B, _>(&mut digest)
+            .unwrap();
         digest
     }
 
@@ -49,7 +31,43 @@ pub trait Digestible {
     fn digest_to_writer_with_order<B: ByteOrder, W: Write>(
         &self,
         writer: &mut W,
-    ) -> Result<(), io::Error> {
+    ) -> std::io::Result<()> {
         Self::digest_to_writer(self, writer)
+    }
+
+    fn digest_to_hasher(&self, hasher: &mut impl Hasher) {
+        let digest_owned = self.digest_owned();
+        hasher.write(&digest_owned);
+    }
+}
+impl<'a, D: Digestible> Digestible for &'a D {
+    #[inline(always)]
+    fn digest_to_writer<W: Write>(&self, writer: &mut W) -> std::io::Result<()> {
+        (*self).digest_to_writer(writer)
+    }
+    #[inline(always)]
+    fn digest_owned(&self) -> Vec<u8> {
+        (*self).digest_owned()
+    }
+    #[inline(always)]
+    fn digest_owned_with_order<B: ByteOrder>(&self) -> Vec<u8> {
+        (*self).digest_owned_with_order::<B>()
+    }
+    #[inline(always)]
+    fn digest_to_writer_with_order<B: ByteOrder, W: Write>(
+        &self,
+        writer: &mut W,
+    ) -> std::io::Result<()> {
+        (*self).digest_to_writer_with_order::<B, _>(writer)
+    }
+}
+pub trait DigestWith {
+    type Digest;
+    fn digest<W: Write>(digest: &Self::Digest, writer: &mut W) -> std::io::Result<()>;
+    fn digest_with_order<B: ByteOrder, W: Write>(
+        digest: &Self::Digest,
+        writer: &mut W,
+    ) -> std::io::Result<()> {
+        Self::digest::<W>(digest, writer)
     }
 }

@@ -1,9 +1,9 @@
-use proc_macro2::{ TokenStream};
-use quote::{format_ident, quote};
-use syn::{DeriveInput, Error};
-use syn::{Result};
 use crate::consts::digest_path;
 use crate::fields::Field;
+use proc_macro2::TokenStream;
+use quote::{format_ident, quote};
+use syn::Result;
+use syn::{DeriveInput, Error};
 
 pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
     let name = &derive_input.ident;
@@ -26,16 +26,24 @@ pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
     let digestible = digest_path();
     let writer = format_ident!("writer");
     let order = format_ident!("B");
-    let write_fields: Vec<_> = fields.iter().map(|v| v.digest(&writer)).filter(|v| v.is_some()).map(|v| v.unwrap()).collect();
-    let write_fields_order: Vec<_> = fields.iter().map(|v| v.digest_with_order(&order,&writer)).filter(|v| v.is_some()).map(|v| v.unwrap()).collect();
+    let write_fields: Vec<_> = fields
+        .iter()
+        .map(|v| v.digest(&writer))
+        .filter(|v| v.is_some())
+        .map(|v| v.unwrap())
+        .collect();
+    let write_fields_order: Vec<_> = fields
+        .iter()
+        .map(|v| v.digest_with_order(&order, &writer))
+        .filter(|v| v.is_some())
+        .map(|v| v.unwrap())
+        .collect();
     let result = quote! {
         const _: () = {
             #[allow(unused_extern_crates, clippy::useless_attribute)]
             extern crate digestible as _digestible;
             #[automatically_derived]
             impl #digestible for #name {
-                type Digest<'a> = Vec<u8> where Self: 'a;
-
                 fn digest_to_writer<W: std::io::Write>(&self, #writer: &mut W) -> std::io::Result<()> {
                     let Self { #(#field_names),* } = self;
 
