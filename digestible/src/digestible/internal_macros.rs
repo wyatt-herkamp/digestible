@@ -16,7 +16,6 @@ macro_rules! impl_for_hashable_hack {
         /// Implemented calling the hash method on the type
         impl Digestible for $hashable {
             fn digest<B: byteorder::ByteOrder, W: crate::DigestWriter>(&self, writer: &mut W) {
-                
                 let mut hashable_hack = crate::hash_digester::HashableHack::new(writer);
                 <Self as core::hash::Hash>::hash(self, &mut hashable_hack);
             }
@@ -42,7 +41,7 @@ pub(super) use impl_for_as_ref_u8;
 #[allow(unused_macros)]
 macro_rules! as_ref_then_call_inner {
     () => {
-        fn digest<B: byteorder::ByteOrder, W: crate::DigesterWriter>(&self, writer: &mut W) {
+        fn digest<B: byteorder::ByteOrder, W: crate::DigestWriter>(&self, writer: &mut W) {
             self.as_ref().digest::<B, W>(writer)
         }
         fn hash(&self, hasher: &mut impl core::hash::Hasher) {

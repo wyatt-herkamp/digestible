@@ -28,9 +28,7 @@ pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
     let order = format_ident!("B");
     let write_fields_order: Vec<_> = fields
         .iter()
-        .map(|v| v.digest_with_order(&order, &writer))
-        .filter(|v| v.is_some())
-        .map(|v| v.unwrap())
+        .filter_map(|v| v.digest_with_order(&order, &writer))
         .collect();
     let result = quote! {
         const _: () = {

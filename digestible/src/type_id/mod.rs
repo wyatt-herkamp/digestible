@@ -1,7 +1,6 @@
 #[cfg(feature = "std")]
 mod std_type_id_hasher;
 
-use crate::digester::SmallDigester;
 use crate::{DigestWriter, Digester, Digestible};
 use byteorder::{ByteOrder, NativeEndian};
 use core::any::type_name;
@@ -13,86 +12,77 @@ pub type DefaultTypeIDHasher = std_type_id_hasher::TypeIDHasher;
 #[cfg(not(feature = "std"))]
 pub type DefaultTypeIDDigester = NoSTDHasher;
 
+/// TypeID is a identifier for a type that is consistent across platforms and compilers.
+/// This is used to mark a type so hashes are different for different types.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub struct TypeId<D: ?Sized = DefaultTypeIDHasher, B: ByteOrder = NativeEndian> {
-    id: u64,
+pub struct TypeId<D: ?Sized = DefaultTypeIDHasher> {
+    id: u128,
+    /// Only used when creating a TypeID
     hasher: PhantomData<D>,
-    byte_order: PhantomData<B>,
 }
-impl<B: ByteOrder> From<u64> for TypeId<(), B> {
-    fn from(value: u64) -> Self {
+impl From<u128> for TypeId {
+    fn from(value: u128) -> Self {
         Self {
             id: value,
             hasher: Default::default(),
-            byte_order: Default::default(),
         }
     }
 }
+impl Into<u128> for TypeId {
+    fn into(self) -> u128 {
+        self.id
+    }
+}
 
-impl<D: SmallDigester<Target = u64> + ?Sized, B: ByteOrder> TypeId<D, B> {
+impl<D: Digester<Target = u128> + Default + ?Sized> TypeId<D> {
     pub fn new<T: ?Sized>() -> Self {
         Self::from_name(type_name::<T>())
     }
     pub fn from_name(name: &'static str) -> Self {
         Self {
-            id: <D as SmallDigester>::digest::<B, _>(&name),
-            hasher: Default::default(),
-            byte_order: Default::default(),
+            // It is string. ByteOrder does not matter
+            id: D::default().digest::<NativeEndian, _>(&name),
+            hasher: PhantomData,
         }
     }
-}
-
-impl<D: ?Sized> Digestible for TypeId<D> {
-    fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
-        writer.write_u64::<B>(self.id)
-    }
-}
-pub struct StructHeader<D: ?Sized = DefaultTypeIDHasher>(TypeId<D>);
-impl<D: SmallDigester<Target = u64> + ?Sized> StructHeader<D> {
-    pub fn new<T: ?Sized>() -> Self {
-        Self(TypeId::<D>::new::<T>())
-    }
-}
-
-impl<D: ?Sized> Digestible for StructHeader<D> {
-    fn digest<B: ByteOrder, W: crate::DigestWriter>(&self, writer: &mut W) {
-        self.0.digest::<B, W>(writer);
-    }
-}
-/// Writes an Enum Header. This is so two Enum Variants with different names but the same data will have different digests
-pub struct EnumHeader<D: ?Sized = DefaultTypeIDHasher> {
-    id: TypeId<D>,
-    variant_id: TypeId<D>,
-}
-impl<D: SmallDigester<Target = u64> + ?Sized> EnumHeader<D> {
-    pub fn new<T: ?Sized>(variant_name: &'static str) -> Self {
+    pub const fn from_id(id: u128) -> Self {
         Self {
-            id: TypeId::<D>::new::<T>(),
-            variant_id: TypeId::<D>::from_name(variant_name),
+            id,
+            hasher: PhantomData,
         }
     }
 }
-impl<D> Digestible for EnumHeader<D> {
-    fn digest<B: ByteOrder, W: crate::DigestWriter>(&self, writer: &mut W) {
-        self.id.digest::<B, W>(writer);
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct StructHeader(u128);
+
+impl Digestible for StructHeader {
+    fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
+        self.0.digest::<B, _>(writer);
+    }
+}
+impl StructHeader {
+    pub const fn new(id: u128) -> Self {
+        Self(id)
+    }
+    pub const fn new_from_typeid(id: TypeId) -> Self {
+        Self(id.id)
+    }
+}
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct EnumHeader(u128, u128);
+
+impl Digestible for EnumHeader {
+    fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
+        self.0.digest::<B, _>(writer);
         writer.write(b"::");
-        self.variant_id.digest::<B, W>(writer);
+        self.1.digest::<B, _>(writer);
     }
 }
-pub struct NoSTDHasher;
-impl Digester for NoSTDHasher {
-    type Target = u64;
-
-    fn digest<B: ByteOrder, D: Digestible>(self, _data: &D) -> Self::Target {
-        panic!("NoSTDHasher does not support digesting")
+impl EnumHeader {
+    pub const fn new(id: u128, discriminate: u128) -> Self {
+        Self(id, discriminate)
     }
-
-    fn digest_no_return<B: ByteOrder, D: Digestible>(&mut self, _data: &D) {
-        panic!("NoSTDHasher does not support digesting")
-    }
-}
-impl SmallDigester for NoSTDHasher {
-    fn digest<B: ByteOrder, D: Digestible>(_data: &D) -> Self::Target {
-        panic!("NoSTDHasher does not support digesting")
+    pub const fn new_from_type_id(id: TypeId, discriminate: u128) -> Self {
+        Self(id.id, discriminate)
     }
 }

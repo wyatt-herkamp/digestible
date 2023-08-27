@@ -1,4 +1,4 @@
-use crate::{Digester, DigesterWriter, Digestible};
+use crate::{DigestWriter, Digester, Digestible};
 use byteorder::ByteOrder;
 use core::hash::Hasher;
 macro_rules! map_to_hasher {
@@ -12,17 +12,42 @@ macro_rules! map_to_hasher {
     };
 
 }
+/// Allows you to pass a Hasher into a type that excepts a Digester
+///
+/// ## Example
+///
+/// ```rust
+/// use digestible::hash_digester::DigesterUsingHasher;
+/// use digestible::{Digester, Digestible};
+/// use std::hash::Hasher;
+/// use std::io::Write;
+/// #[derive(Digestible)]
+/// pub struct MyStruct{
+///     pub id: u32,
+///     pub name: String,
+/// }
+///
+///     let mut hasher = std::collections::hash_map::DefaultHasher::new();
+///     let test = MyStruct{
+///         id: 0,
+///         name: "Test".to_string(),
+///     };
+///     let mut my_digest = DigesterUsingHasher(&mut hasher);
+///     let result = my_digest.digest::<byteorder::NativeEndian,_>(&test);
+///     println!("{:?}", result);
 pub struct DigesterUsingHasher<'h, H: Hasher>(pub &'h mut H);
-impl<H: Hasher> DigesterWriter for DigesterUsingHasher<'_, H> {
+impl<H: Hasher> DigestWriter for DigesterUsingHasher<'_, H> {
     #[inline(always)]
     fn write(&mut self, bytes: &[u8]) {
         self.0.write(bytes)
     }
+    #[inline(always)]
     fn write_u8(&mut self, data: u8) {
-        self.0.write(&[data])
+        self.0.write_u8(data)
     }
+    #[inline(always)]
     fn write_i8(&mut self, data: i8) {
-        self.0.write(&[data as u8])
+        self.0.write_i8(data)
     }
     map_to_hasher!(
         (write_u16(value: u16) => write_u16), (write_u32(value: u32) => write_u32),
@@ -46,10 +71,12 @@ impl<H: Hasher> Digester for DigesterUsingHasher<'_, H> {
 
 /// Foreign Types that do not implement Digestible and do not have a way to access the inner data
 /// ## Example
-/// ```rust, no_run
+/// ```rust
 /// use byteorder::ByteOrder;
 /// use digestible::hash_digester::HashableHack;
+/// use digestible::Digester;
 /// use digestible::{DigestWriter, Digestible};
+/// use sha2::Digest;
 /// use std::hash::Hash;
 /// use std::io::Write;
 /// #[derive(Hash)]
@@ -60,6 +87,12 @@ impl<H: Hasher> Digester for DigesterUsingHasher<'_, H> {
 ///         <Self as Hash>::hash(self, &mut hashable_hack);
 ///     }
 /// }
+///
+/// use byteorder::NativeEndian;
+/// let test = MyHashableType(0);
+/// let mut hasher = sha2::Sha256::new();
+/// let result = hasher.digest::<NativeEndian, _>(&test).to_vec();
+/// println!("{:?}", result);
 /// ```
 pub struct HashableHack<'a, W: crate::DigestWriter>(&'a mut W);
 

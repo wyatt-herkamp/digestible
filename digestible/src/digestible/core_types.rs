@@ -2,10 +2,12 @@ use crate::digestible::Digestible;
 use crate::DigestWriter;
 use byteorder::ByteOrder;
 
-impl<'a> Digestible for &'a [u8] {
+impl<'a, T: Digestible> Digestible for &'a [T] {
     #[inline(always)]
     fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
-        writer.write(self)
+        for item in *self {
+            item.digest::<B, W>(writer)
+        }
     }
 }
 impl<'str> Digestible for &'str str {

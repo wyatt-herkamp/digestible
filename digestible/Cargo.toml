@@ -13,7 +13,7 @@ rust-version="1.70"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-digest = { version = "0.10", optional = true }
+digest_0_10 = {package = "digest", version = "0.10", optional = true }
 byteorder = "1"
 digestible-macros= {path="../macros",optional = true, version = "0.1.0"}
 base64 = { version = "0.21", optional = true }
@@ -23,11 +23,14 @@ bytes = { version = "1" , optional = true}
 sha2 = "0.10"
 base64 = "0.21"
 digestible-macros= {path="../macros"}
+digestible = { path = ".", features = ["chrono", "base64"] }
 [features]
-default = ["digest","derive", "std", "alloc"]
+default = ["digest_0_10","derive", "std", "alloc"]
 derive = ["digestible-macros"]
 std= []
 alloc = []
+# Will allow you to use digest on Atomic types. Ordering Relaxed is used.
+atomic = []
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]

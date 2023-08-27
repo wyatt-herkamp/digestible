@@ -1,5 +1,6 @@
 #[cfg(feature = "alloc")]
 mod alloc_types;
+#[cfg(feature = "atomic")]
 mod atomic;
 mod core_types;
 mod extern_crates;
@@ -18,7 +19,7 @@ pub trait Digestible {
     fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W);
     #[inline(always)]
     fn digest_native<W: DigestWriter>(&self, writer: &mut W) {
-        self.digest::<byteorder::NativeEndian, W>(writer)
+        self.digest::<NativeEndian, W>(writer)
     }
 
     #[doc(hidden)]
@@ -36,4 +37,11 @@ impl<'a, D: Digestible> Digestible for &'a D {
 pub trait DigestWith {
     type Digest;
     fn digest<B: ByteOrder, W: DigestWriter>(digest: &Self::Digest, writer: &mut W);
+}
+
+pub struct ByteSlice<'a>(pub &'a [u8]);
+impl Digestible for ByteSlice<'_> {
+    fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
+        writer.write(self.0)
+    }
 }

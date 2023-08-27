@@ -1,4 +1,3 @@
-use crate::digester::SmallDigester;
 use crate::{DigestWriter, Digester, Digestible};
 use byteorder::ByteOrder;
 use std::collections::hash_map::DefaultHasher;
@@ -11,20 +10,14 @@ impl DigestWriter for TypeIDHasher {
     }
 }
 impl Digester for TypeIDHasher {
-    type Target = u64;
+    type Target = u128;
 
     fn digest<B: ByteOrder, D: Digestible>(mut self, data: &D) -> Self::Target {
         data.digest::<B, _>(&mut self);
-        self.0.finish()
+        self.0.finish() as u128
     }
 
     fn digest_no_return<B: ByteOrder, D: Digestible>(&mut self, data: &D) {
         data.digest::<B, _>(self);
-    }
-}
-impl SmallDigester for TypeIDHasher {
-    fn digest<B: ByteOrder, D: Digestible>(data: &D) -> Self::Target {
-        let hasher = Self(DefaultHasher::new());
-        hasher.digest::<B, D>(data)
     }
 }

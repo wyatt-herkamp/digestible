@@ -33,3 +33,19 @@ fn digest_to_base64(){
 Then you can select any hasher that implements Digester. 
 When you enable the `digest` feature all hashes that implement [digest::Digest](https://docs.rs/digest/latest/digest/) such as SHA2 will be available.
 
+## Features
+
+## ByteOrder
+ByteOrder is applied to types that use byteorder such as numbers and floats.
+
+### Atomic
+Atomics can be used to create a hash. When you enabled the `atomic` feature. Ordering relaxed is used for all atomics.
+
+### to_base64
+The result will automatically be encoded to base64. 
+When you call `into_base64` on the hasher. 
+The hasher must output a type that impl `AsRef<[u8]>` 
+This will be the default when you enable the `digest` feature.
+
+### Chrono
+Chrono Types are implemented using the `hash` feature.

@@ -11,7 +11,7 @@ mod keywords {
     custom_keyword!(use_std_hash);
     custom_keyword!(with);
 }
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct FieldAttr {
     pub skip: bool,
     pub use_std_hash: bool,
@@ -38,11 +38,13 @@ impl Parse for FieldAttr {
                 return Err(lookahead.error());
             }
         }
-        if digest_with.is_some() && use_std_hash {
-            return Err(syn::Error::new(
-                digest_with.unwrap().span(),
-                "Cannot use digest_with and use_std_hash at the same time",
-            ));
+        if use_std_hash {
+            if let Some(digest_with) = &digest_with {
+                return Err(syn::Error::new(
+                    digest_with.span(),
+                    "Cannot use digest_with and use_std_hash at the same time",
+                ));
+            }
         }
         let attr = Self {
             skip,
@@ -52,15 +54,7 @@ impl Parse for FieldAttr {
         Ok(attr)
     }
 }
-impl Default for FieldAttr {
-    fn default() -> Self {
-        Self {
-            skip: false,
-            use_std_hash: false,
-            digest_with: None,
-        }
-    }
-}
+
 #[derive(Debug)]
 pub struct Field {
     pub ty: syn::Type,
@@ -82,8 +76,8 @@ impl Field {
             ident: field
                 .ident
                 .as_ref()
-                .map(|v| v.clone())
-                .unwrap_or_else(|| Ident::new(&*index.to_string(), field.span())),
+                .cloned()
+                .unwrap_or_else(|| Ident::new(&index.to_string(), field.span())),
             ty: field.ty,
             attr,
         })

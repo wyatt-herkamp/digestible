@@ -20,7 +20,7 @@ pub fn digestible(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     // Check if its an enum
     let result = match &input.data {
-        syn::Data::Struct(_) => expand_struct::expand(input).into(),
+        syn::Data::Struct(_) => expand_struct::expand(input),
         _ => Err(syn::Error::new_spanned(
             input,
             "digestible can only be derived for structs",

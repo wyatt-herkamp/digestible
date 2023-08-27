@@ -1,5 +1,5 @@
 #![cfg_attr(not(feature = "std"), no_std)]
-
+#![allow(clippy::from_over_into)]
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
@@ -16,7 +16,6 @@ pub mod hash_digester;
 pub mod to_base64;
 pub mod type_id;
 
-pub use digester_writer::DigestWriter as DigesterWriter;
 pub use digester_writer::DigestWriter;
 #[cfg(feature = "derive")]
 pub use digestible_macros::Digestible;

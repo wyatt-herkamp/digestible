@@ -15,12 +15,20 @@ macro_rules! define_write {
 pub trait DigestWriter {
     fn write(&mut self, data: &[u8]);
     #[inline(always)]
+    fn write_bool(&mut self, data: bool) {
+        self.write(&[data as u8]);
+    }
+    #[inline(always)]
     fn write_u8(&mut self, data: u8) {
         self.write(&[data]);
     }
     #[inline(always)]
     fn write_i8(&mut self, data: i8) {
         self.write(&[data as u8]);
+    }
+    #[inline(always)]
+    fn write_str(&mut self, data: &str) {
+        self.write(data.as_bytes());
     }
     #[inline(always)]
     fn write_usize<B: ByteOrder>(&mut self, data: usize) {
@@ -46,6 +54,8 @@ pub trait DigestWriter {
         (f32, write_f32, 4, write_f32),
         (f64, write_f64, 8, write_f64)
     );
+    #[inline(always)]
+    fn write_separator(&mut self) {}
 }
 #[cfg(feature = "alloc")]
 mod has_alloc {

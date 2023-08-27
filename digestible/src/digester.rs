@@ -1,28 +1,31 @@
 use crate::digestible::Digestible;
 
-use byteorder::ByteOrder;
-
+use byteorder::{ByteOrder, NativeEndian};
 
 pub trait Digester {
     type Target;
 
     fn digest<B: ByteOrder, D: Digestible>(self, data: &D) -> Self::Target;
 
+    fn digest_native_order<D: Digestible>(self, data: &D) -> Self::Target
+    where
+        Self: Sized,
+    {
+        self.digest::<NativeEndian, D>(data)
+    }
+
     fn digest_no_return<B: ByteOrder, D: Digestible>(&mut self, data: &D);
-}
-pub trait SmallDigester: Digester {
-    fn digest<B: ByteOrder, D: Digestible>(data: &D) -> Self::Target;
 }
 
 /// Automatically implement Digester for all types that implement [Digest](digest::Digest)
 ///
 /// Giving you access to use [sha2](https://crates.io/crates/sha2), [sha1](https://crates.io/crates/sha1), [md-5](https://crates.io/crates/md-5) and more
-#[cfg(feature = "digest")]
+#[cfg(feature = "digest_0_10")]
 mod digest {
     use crate::digester::Digester;
     use crate::digestible::Digestible;
     use byteorder::ByteOrder;
-    use digest::{Digest, Output};
+    use digest_0_10::{Digest, Output};
 
     impl<T: Digest> Digester for T {
         type Target = Output<T>;
