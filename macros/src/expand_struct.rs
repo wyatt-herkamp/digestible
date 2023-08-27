@@ -26,17 +26,9 @@ pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
     let digestible = digest_path();
     let writer = format_ident!("writer");
     let order = format_ident!("B");
-    let write_fields: Vec<_> = fields
-        .iter()
-        .map(|v| v.digest(&writer))
-        .filter(|v| v.is_some())
-        .map(|v| v.unwrap())
-        .collect();
     let write_fields_order: Vec<_> = fields
         .iter()
-        .map(|v| v.digest_with_order(&order, &writer))
-        .filter(|v| v.is_some())
-        .map(|v| v.unwrap())
+        .filter_map(|v| v.digest_with_order(&order, &writer))
         .collect();
     let result = quote! {
         const _: () = {
@@ -44,19 +36,12 @@ pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
             extern crate digestible as _digestible;
             #[automatically_derived]
             impl #digestible for #name {
-                fn digest_to_writer<W: std::io::Write>(&self, #writer: &mut W) -> std::io::Result<()> {
-                    let Self { #(#field_names),* } = self;
-
-                    #(#write_fields)*
-                    return Ok(());
-                }
-                fn digest_to_writer_with_order<#order: _digestible::ByteOrder, W: std::io::Write>(
+                fn digest<#order: _digestible::ByteOrder, W: _digestible::DigestWriter>(
                     &self,
                     writer: &mut W,
-                ) -> std::io::Result<()> {
+                ) {
                     let Self { #(#field_names),* } = self;
                     #(#write_fields_order)*
-                    return Ok(());
                 }
             }
         };

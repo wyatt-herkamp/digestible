@@ -11,7 +11,7 @@ mod keywords {
     custom_keyword!(use_std_hash);
     custom_keyword!(with);
 }
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct FieldAttr {
     pub skip: bool,
     pub use_std_hash: bool,
@@ -38,30 +38,23 @@ impl Parse for FieldAttr {
                 return Err(lookahead.error());
             }
         }
-        if digest_with.is_some() && use_std_hash {
-            return Err(syn::Error::new(
-                digest_with.unwrap().span(),
-                "Cannot use digest_with and use_std_hash at the same time",
-            ));
+        if use_std_hash {
+            if let Some(digest_with) = &digest_with {
+                return Err(syn::Error::new(
+                    digest_with.span(),
+                    "Cannot use digest_with and use_std_hash at the same time",
+                ));
+            }
         }
         let attr = Self {
             skip,
             use_std_hash,
             digest_with,
         };
-        println!("{:?}", attr);
         Ok(attr)
     }
 }
-impl Default for FieldAttr {
-    fn default() -> Self {
-        Self {
-            skip: false,
-            use_std_hash: false,
-            digest_with: None,
-        }
-    }
-}
+
 #[derive(Debug)]
 pub struct Field {
     pub ty: syn::Type,
@@ -83,32 +76,11 @@ impl Field {
             ident: field
                 .ident
                 .as_ref()
-                .map(|v| v.clone())
-                .unwrap_or_else(|| Ident::new(&*index.to_string(), field.span())),
+                .cloned()
+                .unwrap_or_else(|| Ident::new(&index.to_string(), field.span())),
             ty: field.ty,
             attr,
         })
-    }
-    pub fn digest(&self, writer: &Ident) -> Option<TokenStream> {
-        if self.attr.skip {
-            return None;
-        } else if self.attr.use_std_hash {
-            return Some(self.use_std_hash(writer));
-        }
-        let digestible = digest_path();
-        let ident = &self.ident;
-        let ty = &self.ty;
-        let result = if let Some(digest_with) = &self.attr.digest_with {
-            let digest_with_path = digest_with_path();
-            quote! {
-                <#digest_with as #digest_with_path>::digest::<_>(#ident, #writer)?;
-            }
-        } else {
-            quote! {
-                <#ty as #digestible>::digest_to_writer(#ident, #writer)?;
-            }
-        };
-        Some(result)
     }
     pub fn digest_with_order(&self, endian: &Ident, writer: &Ident) -> Option<TokenStream> {
         if self.attr.skip {
@@ -122,11 +94,11 @@ impl Field {
         let result = if let Some(digest_with) = &self.attr.digest_with {
             let digest_with_path = digest_with_path();
             quote! {
-                <#digest_with as #digest_with_path>::digest_with_order::<#endian,_>(#ident, #writer)?;
+                <#digest_with as #digest_with_path>::digest::<#endian,_>(#ident, #writer);
             }
         } else {
             quote! {
-                <#ty as #digestible>::digest_to_writer_with_order::<#endian, _>(#ident, #writer)?;
+                <#ty as #digestible>::digest::<#endian, _>(#ident, #writer);
             }
         };
         Some(result)

@@ -1,8 +1,10 @@
 use crate::digester::Digester;
 use crate::Digestible;
+use alloc::string::String;
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
-use std::fmt::{Debug, Formatter};
+use byteorder::ByteOrder;
+use core::fmt::{Debug, Formatter};
 
 pub struct ToBase64<D>(D);
 impl<D> ToBase64<D> {
@@ -20,7 +22,7 @@ impl<D> ToBase64<D> {
     }
 }
 impl<D: Debug> Debug for ToBase64<D> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         f.debug_tuple("ToBase64").field(&self.0).finish()
     }
 }
@@ -46,19 +48,25 @@ pub trait IntoBase64: Sized {
     fn into_base64(self) -> ToBase64<Self>;
 }
 
-impl<D: Digester> IntoBase64 for D {
+impl<D: Digester> IntoBase64 for D
+where
+    <D as Digester>::Target: AsRef<[u8]>,
+{
     fn into_base64(self) -> ToBase64<Self> {
         ToBase64(self)
     }
 }
-impl<D: Digester> Digester for ToBase64<D> {
+impl<D: Digester> Digester for ToBase64<D>
+where
+    <D as Digester>::Target: AsRef<[u8]>,
+{
     type Target = String;
 
-    fn digest<DI: Digestible>(self, data: &DI) -> Self::Target {
-        Self::encode_base64(self.0.digest(data))
+    fn digest<B: ByteOrder, DI: Digestible>(self, data: &DI) -> Self::Target {
+        Self::encode_base64(self.0.digest::<B, DI>(data))
     }
 
-    fn digest_no_return<DI: Digestible>(&mut self, data: &DI) {
-        self.0.digest_no_return(data)
+    fn digest_no_return<B: ByteOrder, DI: Digestible>(&mut self, data: &DI) {
+        self.0.digest_no_return::<B, DI>(data)
     }
 }
