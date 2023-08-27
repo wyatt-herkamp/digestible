@@ -6,7 +6,7 @@ extern crate alloc;
 pub mod digester;
 pub mod digestible;
 pub use digester::Digester;
-pub use digestible::Digestible;
+pub use crate::digestible::Digestible;
 
 /// Expose [byteorder](https://crates.io/crates/byteorder)
 pub use byteorder::*;
