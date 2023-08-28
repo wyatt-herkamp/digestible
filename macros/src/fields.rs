@@ -1,6 +1,6 @@
 use crate::consts::{digest_path, digest_with as digest_with_path, hashable_hack};
 use proc_macro2::{Ident, TokenStream};
-use quote::quote;
+use quote::{format_ident, quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::Path;
@@ -56,14 +56,16 @@ impl Parse for FieldAttr {
 }
 
 #[derive(Debug)]
-pub struct Field {
+pub struct Field<'a> {
     pub ty: syn::Type,
     pub ident: Ident,
     pub attr: FieldAttr,
+    pub endian: &'a Ident,
+    pub writer: &'a Ident,
 }
 
-impl Field {
-    pub fn new(field: syn::Field, index: usize) -> syn::Result<Self> {
+impl<'a> Field<'a> {
+    pub fn new(field: syn::Field, index: usize, endian: &'a Ident, writer: &'a Ident) -> syn::Result<Self> {
         let attr = field
             .attrs
             .iter()
@@ -77,32 +79,14 @@ impl Field {
                 .ident
                 .as_ref()
                 .cloned()
-                .unwrap_or_else(|| Ident::new(&index.to_string(), field.span())),
+                .unwrap_or_else(|| format_ident!("field_{}", index)),
             ty: field.ty,
             attr,
+            endian,
+            writer,
         })
     }
-    pub fn digest_with_order(&self, endian: &Ident, writer: &Ident) -> Option<TokenStream> {
-        if self.attr.skip {
-            return None;
-        } else if self.attr.use_std_hash {
-            return Some(self.use_std_hash(writer));
-        }
-        let digestible = digest_path();
-        let ident = &self.ident;
-        let ty = &self.ty;
-        let result = if let Some(digest_with) = &self.attr.digest_with {
-            let digest_with_path = digest_with_path();
-            quote! {
-                <#digest_with as #digest_with_path>::digest::<#endian,_>(#ident, #writer);
-            }
-        } else {
-            quote! {
-                <#ty as #digestible>::digest::<#endian, _>(#ident, #writer);
-            }
-        };
-        Some(result)
-    }
+
     fn use_std_hash(&self, writer: &Ident) -> TokenStream {
         let hashable_hack = hashable_hack();
         let ident = &self.ident;
@@ -113,5 +97,32 @@ impl Field {
                 <#ty as std::hash::Hash>::hash(#ident, &mut hashable_hack);
             }
         }
+    }
+}
+impl ToTokens for Field<'_>{
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        if self.attr.skip {
+            return;
+        } else if self.attr.use_std_hash {
+            let use_std_hash = self.use_std_hash(self.writer);
+            tokens.extend(use_std_hash);
+            return;
+        }
+        let digestible = digest_path();
+        let ident = &self.ident;
+        let ty = &self.ty;
+        let endian = self.endian;
+        let writer = self.writer;
+        let result = if let Some(digest_with) = &self.attr.digest_with {
+            let digest_with_path = digest_with_path();
+            quote! {
+                <#digest_with as #digest_with_path>::digest::<#endian,_>(#ident, #writer);
+            }
+        } else {
+            quote! {
+                <#ty as #digestible>::digest::<#endian, _>(#ident, #writer);
+            }
+        };
+        tokens.extend(result);
     }
 }

@@ -1,35 +1,57 @@
-use crate::consts::digest_path;
+use crate::consts::{digest_path, digest_writer};
 use crate::fields::Field;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use syn::Result;
+use syn::{Fields, Result};
 use syn::{DeriveInput, Error};
+use crate::container_attrs::{ContainerAttrs, get_container_attrs, TypeHeader};
 
 pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
     let name = &derive_input.ident;
-    let as_struct = match derive_input.data {
-        syn::Data::Struct(s) => s,
-        _ => {
-            return Err(Error::new_spanned(
-                derive_input,
-                "digestible can only be derived for structs",
-            ))
-        }
+    let container_attrs = get_container_attrs!(derive_input);
+    let syn::Data::Struct(as_struct) = derive_input.data else {
+        unreachable!("digestible can only be derived for enums (expand_struct.rs)")
     };
-    let mut fields = Vec::with_capacity(as_struct.fields.len());
 
-    for (index, field) in as_struct.fields.into_iter().enumerate() {
-        let field = Field::new(field.clone(), index)?;
-        fields.push(field);
-    }
-    let field_names: Vec<_> = fields.iter().map(|v| v.ident.clone()).collect();
-    let digestible = digest_path();
+    let mut fields = Vec::with_capacity(as_struct.fields.len());
     let writer = format_ident!("writer");
     let order = format_ident!("B");
-    let write_fields_order: Vec<_> = fields
-        .iter()
-        .filter_map(|v| v.digest_with_order(&order, &writer))
-        .collect();
+    for (index, field) in as_struct.fields.iter().enumerate() {
+        let field = Field::new(field.clone(), index, &order, &writer)?;
+        fields.push(field);
+    }
+    let field_names: Vec<_> = fields.iter().map(|v| &v.ident).collect();
+
+    let expand_fields = match &as_struct.fields {
+        Fields::Named(_) => {
+            quote!{
+                let Self { #(#field_names),* } = self;
+            }
+        }
+        Fields::Unnamed(_) => {
+            quote!{
+                let Self(#(#field_names),*) = self;
+            }
+        }
+        Fields::Unit => {
+            quote!{}
+        }
+    };
+
+
+    let digest_writer = digest_writer();
+    let header_write = match container_attrs.type_header {
+        TypeHeader::None => quote! {},
+        TypeHeader::HashName => {
+            quote! {
+                #digest_writer::write(writer, core::any::type_name::<Self>().as_bytes());
+            }
+        }
+        TypeHeader::TypeId { .. } => {
+            todo!("type_id")
+        }
+    };
+    let digestible = digest_path();
     let result = quote! {
         const _: () = {
             #[allow(unused_extern_crates, clippy::useless_attribute)]
@@ -40,8 +62,9 @@ pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
                     &self,
                     writer: &mut W,
                 ) {
-                    let Self { #(#field_names),* } = self;
-                    #(#write_fields_order)*
+                    #header_write
+                    #expand_fields
+                    #(#fields)*
                 }
             }
         };

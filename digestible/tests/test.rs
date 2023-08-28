@@ -59,6 +59,8 @@ pub fn test_base64() {
     println!("{:?}", result);
 }
 #[derive(Digestible)]
+pub struct TupleStruct(String);
+#[derive(Digestible)]
 pub struct CommonSimilarButDifferent {
     pub active: bool,
     pub created: NaiveDateTime,
@@ -75,7 +77,10 @@ pub struct SimilarButDifferentTwo {
     pub name: String,
     pub common: CommonSimilarButDifferent,
 }
-pub enum SimilarButDifferent {
+#[derive(Digestible)]
+pub enum EnumExample {
     One { username: String },
     Two { name: String },
+    None,
+    Unit(String)
 }

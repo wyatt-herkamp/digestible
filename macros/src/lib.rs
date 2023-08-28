@@ -1,6 +1,8 @@
 mod consts;
+mod container_attrs;
 mod expand_struct;
 mod fields;
+mod expand_enum;
 
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, DeriveInput};
@@ -21,9 +23,10 @@ pub fn digestible(input: TokenStream) -> TokenStream {
     // Check if its an enum
     let result = match &input.data {
         syn::Data::Struct(_) => expand_struct::expand(input),
+        syn::Data::Enum(_) => expand_enum::expand(input),
         _ => Err(syn::Error::new_spanned(
             input,
-            "digestible can only be derived for structs",
+            "digestible can only be derived for structs and enums",
         )),
     };
     match result {
