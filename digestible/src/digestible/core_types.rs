@@ -98,3 +98,6 @@ impl<S: Digestible, E: Digestible> Digestible for Result<S, E>{
         }
     }
 }
+impl Digestible for (){
+    fn digest<B: ByteOrder, W: DigestWriter>(&self, _: &mut W) {}
+}
