@@ -1,8 +1,8 @@
 mod consts;
 mod container_attrs;
+mod expand_enum;
 mod expand_struct;
 mod fields;
-mod expand_enum;
 
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, DeriveInput};

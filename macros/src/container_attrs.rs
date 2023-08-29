@@ -1,15 +1,15 @@
-use crate::consts::{digest_path, digest_with as digest_with_path, hashable_hack};
-use proc_macro2::{Ident, TokenStream};
-use quote::quote;
 use syn::parse::{Parse, ParseStream};
-use syn::spanned::Spanned;
+
 use syn::Path;
 
 #[derive(Debug)]
 pub enum TypeHeader {
     None,
     HashName,
-    TypeId { path_to_type_id_gen: Path },
+    #[allow(dead_code)]
+    TypeId {
+        path_to_type_id_gen: Path,
+    },
 }
 impl Default for TypeHeader {
     fn default() -> Self {
@@ -63,12 +63,12 @@ impl Parse for ContainerAttrs {
 macro_rules! get_container_attrs {
     ($input:ident) => {
         $input
-        .attrs
-        .iter()
-        .find(|v| v.path().is_ident("digestible"))
-        .map(|v| v.parse_args::<ContainerAttrs>())
-        .transpose()?
-        .unwrap_or_default()
+            .attrs
+            .iter()
+            .find(|v| v.path().is_ident("digestible"))
+            .map(|v| v.parse_args::<ContainerAttrs>())
+            .transpose()?
+            .unwrap_or_default()
     };
 }
 pub(crate) use get_container_attrs;

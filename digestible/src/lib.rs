@@ -14,7 +14,6 @@ pub mod digester_writer;
 pub mod hash_digester;
 #[cfg(feature = "base64")]
 pub mod to_base64;
-pub mod type_id;
 
 pub use digester_writer::DigestWriter;
 #[cfg(feature = "derive")]

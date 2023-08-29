@@ -82,5 +82,5 @@ pub enum EnumExample {
     One { username: String },
     Two { name: String },
     None,
-    Unit(String)
+    Unit(String),
 }

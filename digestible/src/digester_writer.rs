@@ -54,6 +54,9 @@ pub trait DigestWriter {
         (f32, write_f32, 4, write_f32),
         (f64, write_f64, 8, write_f64)
     );
+    /// Writes a Separator between fields in a type.
+    ///
+    /// By Default this does nothing.
     #[inline(always)]
     fn write_separator(&mut self) {}
 }
@@ -68,14 +71,10 @@ mod has_alloc {
         }
     }
 }
-#[cfg(feature = "bytes")]
-mod has_bytes {
-    use crate::DigestWriter;
-    use bytes::BytesMut;
 
-    impl DigestWriter for BytesMut {
-        fn write(&mut self, data: &[u8]) {
-            self.extend_from_slice(data);
-        }
+#[cfg(feature = "bytes")]
+impl DigestWriter for bytes::BytesMut {
+    fn write(&mut self, data: &[u8]) {
+        self.extend_from_slice(data);
     }
 }

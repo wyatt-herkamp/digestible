@@ -1,16 +1,16 @@
+use crate::consts::{digest_path, digest_writer};
+use crate::container_attrs::{get_container_attrs, ContainerAttrs, TypeHeader};
+use crate::fields::Field;
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use syn::DeriveInput;
-use crate::consts::{digest_path, digest_writer};
-use crate::container_attrs::{ContainerAttrs, get_container_attrs, TypeHeader};
 use syn::Result;
-use crate::fields::Field;
-pub enum EnumType{
+pub enum EnumType {
     Unit,
     Tuple,
     Struct,
 }
-pub struct Variant<'a>{
+pub struct Variant<'a> {
     pub ident: syn::Ident,
     pub fields: Vec<Field<'a>>,
     pub endian: &'a Ident,
@@ -18,7 +18,7 @@ pub struct Variant<'a>{
     pub enum_type: EnumType,
 }
 
-impl<'a> Variant<'a>{
+impl<'a> Variant<'a> {
     pub fn new(variant: syn::Variant, endian: &'a Ident, writer: &'a Ident) -> syn::Result<Self> {
         let mut fields: Vec<Field<'a>> = Vec::with_capacity(variant.fields.len());
         for (index, field) in variant.fields.iter().enumerate() {
@@ -35,7 +35,7 @@ impl<'a> Variant<'a>{
             fields,
             endian,
             writer,
-            enum_type
+            enum_type,
         })
     }
     pub fn catch_block(&self, enum_name: &Ident) -> TokenStream {
@@ -44,7 +44,7 @@ impl<'a> Variant<'a>{
         let endian = self.endian;
         let fields: Vec<_> = self.fields.iter().map(|v| &v.ident).collect();
         let fn_name = format_ident!("digest_{}", self.ident);
-        let result = match self.enum_type {
+        match self.enum_type {
             EnumType::Unit => {
                 quote! {
                     #enum_name::#ident => {
@@ -66,27 +66,29 @@ impl<'a> Variant<'a>{
                     }
                 }
             }
-        };
-        result
+        }
     }
 }
-impl ToTokens for Variant<'_>{
+impl ToTokens for Variant<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-
         let fn_name = format_ident!("digest_{}", self.ident);
-        let fields_def: Vec<TokenStream> = self.fields.iter().map(|v|{
-            let ty = &v.ty;
-            let ident = &v.ident;
-            quote! {
-                #ident: &#ty
-            }
-        }).collect();
+        let fields_def: Vec<TokenStream> = self
+            .fields
+            .iter()
+            .map(|v| {
+                let ty = &v.ty;
+                let ident = &v.ident;
+                quote! {
+                    #ident: &#ty
+                }
+            })
+            .collect();
         let fields = &self.fields;
         let digest_writer = digest_writer();
         let ident = &self.ident;
         let writer = self.writer;
         let endian = self.endian;
-        let result = quote!{
+        let result = quote! {
             fn #fn_name<#endian: _digestible::ByteOrder, W: #digest_writer>(
                 #writer: &mut W,
                 #(#fields_def),*
@@ -125,7 +127,7 @@ pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
         let variant = Variant::new(variant, &order, &writer)?;
         variants.push(variant);
     }
-    let catch_block: Vec<_> = variants.iter().map(|v| v.catch_block(&name)).collect();
+    let catch_block: Vec<_> = variants.iter().map(|v| v.catch_block(name)).collect();
     let digestible = digest_path();
     let result = quote! {
         const _: () = {

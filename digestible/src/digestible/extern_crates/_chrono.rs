@@ -1,6 +1,6 @@
-///! This file is used to implement Digestible for chrono types.
-///
-/// This is done by using the HashableHack struct to write the data to a writer.
+//! This file is used to implement Digestible for chrono types.
+//!
+//! This is done by using the HashableHack struct to write the data to a writer.
 use crate::digestible::internal_macros::{impl_for_hashable_hack, use_hasher};
 use crate::hash_digester::HashableHack;
 use crate::Digestible;

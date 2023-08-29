@@ -1,10 +1,10 @@
 use crate::consts::{digest_path, digest_writer};
+use crate::container_attrs::{get_container_attrs, ContainerAttrs, TypeHeader};
 use crate::fields::Field;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
+use syn::DeriveInput;
 use syn::{Fields, Result};
-use syn::{DeriveInput, Error};
-use crate::container_attrs::{ContainerAttrs, get_container_attrs, TypeHeader};
 
 pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
     let name = &derive_input.ident;
@@ -24,20 +24,19 @@ pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
 
     let expand_fields = match &as_struct.fields {
         Fields::Named(_) => {
-            quote!{
+            quote! {
                 let Self { #(#field_names),* } = self;
             }
         }
         Fields::Unnamed(_) => {
-            quote!{
+            quote! {
                 let Self(#(#field_names),*) = self;
             }
         }
         Fields::Unit => {
-            quote!{}
+            quote! {}
         }
     };
-
 
     let digest_writer = digest_writer();
     let header_write = match container_attrs.type_header {

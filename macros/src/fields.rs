@@ -65,7 +65,12 @@ pub struct Field<'a> {
 }
 
 impl<'a> Field<'a> {
-    pub fn new(field: syn::Field, index: usize, endian: &'a Ident, writer: &'a Ident) -> syn::Result<Self> {
+    pub fn new(
+        field: syn::Field,
+        index: usize,
+        endian: &'a Ident,
+        writer: &'a Ident,
+    ) -> syn::Result<Self> {
         let attr = field
             .attrs
             .iter()
@@ -99,7 +104,7 @@ impl<'a> Field<'a> {
         }
     }
 }
-impl ToTokens for Field<'_>{
+impl ToTokens for Field<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         if self.attr.skip {
             return;
