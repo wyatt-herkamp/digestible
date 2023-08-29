@@ -68,3 +68,33 @@ digestible_for_num!(f64, write_f64, no_hash);
 
 digestible_for_num!(usize, write_usize);
 digestible_for_num!(isize, write_isize);
+
+
+
+impl<T: Digestible> Digestible for Option<T>{
+    fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
+        match self {
+            Some(value) => {
+                writer.write_u8(1);
+                value.digest::<B, W>(writer);
+            }
+            None => {
+                writer.write_u8(0);
+            }
+        }
+    }
+}
+impl<S: Digestible, E: Digestible> Digestible for Result<S, E>{
+    fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
+        match self {
+            Ok(value) => {
+                writer.write_u8(0);
+                value.digest::<B, W>(writer);
+            }
+            Err(value) => {
+                writer.write_u8(1);
+                value.digest::<B, W>(writer);
+            }
+        }
+    }
+}
