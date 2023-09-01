@@ -27,7 +27,7 @@ pub trait Digester {
     ///     pub name: String,
     ///     #[digestible(skip)]
     ///     pub password: String,
-    ///     #[digestible(use_std_hash)]
+    ///     #[digestible(digest_with = digest_with_hash)]
     ///     pub duration: Duration,
     /// }
     ///

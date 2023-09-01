@@ -2,7 +2,7 @@
 A more dynamic Hash and Hashable trait for Rust
 
 
-## Usage
+## Example
 ```rust
 #[derive(Digestible)]
 pub struct MyStruct {
@@ -31,28 +31,11 @@ fn digest_to_base64(){
 }
 ```
 Then you can select any hasher that implements Digester. 
-When you enable the `digest` feature all hashes that implement [digest::Digest](https://docs.rs/digest/latest/digest/) such as SHA2 will be available.
+When you enable the `digest` feature all hashes that implement [digezst::Digest](https://docs.rs/digest/latest/digest/) such as SHA2 will be available.
 
-## Features
-
-## ByteOrder
-ByteOrder is applied to types that use byteorder such as numbers and floats.
-
-### Atomic
-Atomics can be used to create a hash. When you enabled the `atomic` feature. Ordering relaxed is used for all atomics.
-
-### to_base64
-The result will automatically be encoded to base64. 
-When you call `into_base64` on the hasher. 
-The hasher must output a type that impl `AsRef<[u8]>` 
-This will be the default when you enable the `digest` feature.
-
-### Chrono
-Chrono Types are implemented using the `hash` feature.
-
-### Float
-Implements Digestible for f32 and f64. 
-
-#### Notes
-The Digest Writer will always provide the write_f32 and write_f64 functions.
-
+## Key Difference.
+- ByteOrder is built in. So you can digest number types in any byte order.
+- Output is a Generic Associated Type.
+  So you can Digest into a ByteArray, String with [Base64](https://docs.rs/digestible/0.2.0-rc.1/digestible/struct.ToBase64.html)
+  or any other that the Digester implements.
+- Atomic Support Via [Digest With](https://docs.rs/digestible/0.2.0-rc.1/digestible/derive.Digestible.html#digest-with-example) and the [provided functions](https://docs.rs/digestible/0.2.0-rc.1/digestible/digest_with/atomics/index.html) 

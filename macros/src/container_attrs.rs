@@ -1,6 +1,6 @@
 use syn::parse::{Parse, ParseStream};
 
-use syn::Path;
+use syn::{parse_quote, Path};
 
 #[derive(Debug)]
 pub enum TypeHeader {
@@ -38,25 +38,39 @@ mod keywords {
     custom_keyword!(None);
     custom_keyword!(HashName);
     custom_keyword!(type_id);
+    custom_keyword!(hash);
 }
 #[derive(Debug, Default)]
 pub struct ContainerAttrs {
     pub type_header: TypeHeader,
+    pub impl_hash: Option<Path>,
 }
 impl Parse for ContainerAttrs {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut type_header = TypeHeader::default();
+        let mut impl_hash = None;
         while !input.is_empty() {
             let lookahead = input.lookahead1();
             if lookahead.peek(keywords::type_header) {
                 let _ = input.parse::<keywords::type_header>()?;
                 let _: syn::Token![=] = input.parse()?;
                 type_header = input.parse()?;
+            } else if lookahead.peek(keywords::hash) {
+                let _ = input.parse::<keywords::hash>()?;
+                if input.peek(syn::Token![=]) {
+                    let _: syn::Token![=] = input.parse()?;
+                    impl_hash = Some(byte_order_impl_path(input.parse()?));
+                } else {
+                    impl_hash = Some(byte_order_impl_path(parse_quote!(NativeEndian)));
+                }
             } else {
                 return Err(lookahead.error());
             }
         }
-        let attr = Self { type_header };
+        let attr = Self {
+            type_header,
+            impl_hash,
+        };
         Ok(attr)
     }
 }
@@ -71,4 +85,5 @@ macro_rules! get_container_attrs {
             .unwrap_or_default()
     };
 }
+use crate::consts::byte_order_impl_path;
 pub(crate) use get_container_attrs;

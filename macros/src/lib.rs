@@ -3,6 +3,7 @@ mod container_attrs;
 mod expand_enum;
 mod expand_struct;
 mod fields;
+mod shared;
 
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, DeriveInput};

@@ -61,7 +61,7 @@ impl<H: Hasher> DigestWriter for DigesterUsingHasher<'_, H> {
 impl<H: Hasher> Digester for DigesterUsingHasher<'_, H> {
     type Target = u64;
     fn digest<B: ByteOrder>(mut self, data: &impl Digestible) -> Self::Target {
-        data.hash(&mut self.0);
+        Digestible::digest::<B, _>(data, &mut self);
         self.0.finish()
     }
 }
@@ -80,7 +80,7 @@ impl<H: Hasher> Digester for DigesterUsingHasher<'_, H> {
 /// pub struct MyHashableType(u32);
 /// impl Digestible for MyHashableType {
 ///     fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
-///         let mut hashable_hack = HashableHack::new(writer);
+///         let mut hashable_hack = HashableHack(writer);
 ///         <Self as Hash>::hash(self, &mut hashable_hack);
 ///     }
 /// }
@@ -91,13 +91,7 @@ impl<H: Hasher> Digester for DigesterUsingHasher<'_, H> {
 /// let result = hasher.digest::<NativeEndian>(&test).to_vec();
 /// println!("{:?}", result);
 /// ```
-pub struct HashableHack<'a, W: crate::DigestWriter>(&'a mut W);
-
-impl<'a, W: crate::DigestWriter> HashableHack<'a, W> {
-    pub fn new(writer: &'a mut W) -> Self {
-        Self(writer)
-    }
-}
+pub struct HashableHack<'w, W: crate::DigestWriter>(pub &'w mut W);
 
 macro_rules! map_to_digester {
     ( $(($call:ident($call_param:ident: $call_type:ty) => $to:ident)),*) => {

@@ -1,6 +1,8 @@
+use crate::digestible::internal_macros::impl_for_hashable_hack;
 use crate::digestible::Digestible;
 use crate::DigestWriter;
 use byteorder::ByteOrder;
+use core::marker::PhantomData;
 
 impl<'a, T: Digestible> Digestible for &'a [T] {
     #[inline(always)]
@@ -21,12 +23,12 @@ impl Digestible for bool {
         writer.write(&[*self as u8])
     }
 }
-macro_rules! hash {
-    (hash) => {
-        crate::digestible::internal_macros::use_hasher!();
-    };
-    (no_hash) => {};
+impl Digestible for char {
+    fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
+        writer.write(&[*self as u8])
+    }
 }
+
 macro_rules! digestible_for_num {
     ($num:ty, 1,$write:ident) => {
         impl Digestible for $num {
@@ -35,20 +37,15 @@ macro_rules! digestible_for_num {
             fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
                 writer.$write(*self)
             }
-            super::internal_macros::use_hasher!();
         }
     };
-    ($num:ty, $write:ident) => {
-        digestible_for_num!($num, $write, hash);
-    };
-    ($num:ty,  $write:ident, $hash:ident) => {
+    ($num:ty,  $write:ident) => {
         impl Digestible for $num {
             /// Writes the digestible data to the writer.
             /// Using the native byte order
             fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
                 writer.$write::<B>(*self)
             }
-            hash!($hash);
         }
     };
 }
@@ -63,41 +60,36 @@ digestible_for_num!(i16, write_i16);
 digestible_for_num!(i32, write_i32);
 digestible_for_num!(i64, write_i64);
 digestible_for_num!(i128, write_i128);
-#[cfg(feature = "float")]
-digestible_for_num!(f32, write_f32, no_hash);
-#[cfg(feature = "float")]
-digestible_for_num!(f64, write_f64, no_hash);
+digestible_for_num!(f32, write_f32);
+digestible_for_num!(f64, write_f64);
 
 digestible_for_num!(usize, write_usize);
 digestible_for_num!(isize, write_isize);
 
 impl<T: Digestible> Digestible for Option<T> {
+    #[inline]
     fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
-        match self {
-            Some(value) => {
-                writer.write_u8(1);
-                value.digest::<B, W>(writer);
-            }
-            None => {
-                writer.write_u8(0);
-            }
+        if let Some(value) = self {
+            value.digest::<B, W>(writer);
         }
     }
 }
 impl<S: Digestible, E: Digestible> Digestible for Result<S, E> {
+    #[inline]
     fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
         match self {
             Ok(value) => {
-                writer.write_u8(0);
                 value.digest::<B, W>(writer);
             }
             Err(value) => {
-                writer.write_u8(1);
                 value.digest::<B, W>(writer);
             }
         }
     }
 }
-impl Digestible for () {
+
+impl<T: ?Sized> Digestible for PhantomData<T> {
+    #[inline(always)]
     fn digest<B: ByteOrder, W: DigestWriter>(&self, _: &mut W) {}
 }
+impl_for_hashable_hack!(core::time::Duration);

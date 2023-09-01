@@ -7,6 +7,8 @@ use digestible::to_base64::IntoBase64;
 use digestible::DigestWriter;
 use digestible_macros::Digestible;
 use sha2::Digest;
+use std::collections::hash_map::DefaultHasher;
+use std::hash::Hash;
 use std::time::Duration;
 
 fn duration_digest_with<B: ByteOrder, W: DigestWriter>(digest: &Duration, writer: &mut W) {
@@ -19,7 +21,7 @@ pub struct MyStruct {
     pub name: String,
     #[digestible(skip)]
     pub password: String,
-    #[digestible(use_std_hash)]
+    #[digestible(digest_with = digest_with_hash)]
     pub duration: Duration,
     #[digestible(with = duration_digest_with)]
     pub duration_two: Duration,
@@ -57,6 +59,7 @@ pub struct TupleStruct(String);
 #[derive(Digestible)]
 pub struct CommonSimilarButDifferent {
     pub active: bool,
+    #[digestible(digest_with = digest_with_hash)]
     pub created: NaiveDateTime,
 }
 #[derive(Digestible)]
@@ -72,9 +75,18 @@ pub struct SimilarButDifferentTwo {
     pub common: CommonSimilarButDifferent,
 }
 #[derive(Digestible)]
+#[digestible(hash = LittleEndian)]
 pub enum EnumExample {
     One { username: String },
     Two { name: String },
     None,
     Unit(String),
+}
+#[test]
+pub fn hash_test() {
+    let test = EnumExample::One {
+        username: "Test".to_string(),
+    };
+    let mut default_hasher = DefaultHasher::new();
+    test.hash(&mut default_hasher);
 }

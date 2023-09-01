@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["Wyatt Herkamp <wherkamp@gmail.com>"]
 description = "A more dynamic Hash and Hasher interface"
 license = "MIT OR Apache-2.0"
-categories = ["cryptography"]
+categories = ["cryptography","no-std"]
 keywords = ["digest", "crypto", "hash"]
 documentation = "https://docs.rs/digestible"
 repository = "https://github.com/wyatt-herkamp/digestible"
@@ -17,24 +17,19 @@ rust-version="1.70"
 digest_0_10 = {package = "digest", version = "0.10", optional = true }
 byteorder = "1"
 digestible-macros= {path="../macros",optional = true, version = "0.2.0-rc.1" }
-
 base64 = { version = "0.21", optional = true }
-chrono = { version = "0.4", optional = true }
 bytes = { version = "1" , optional = true}
 [dev-dependencies]
 sha2 = "0.10"
 base64 = "0.21"
 digestible-macros= {path="../macros"}
-digestible = { path = ".", features = ["chrono", "base64"] }
+digestible = { path = ".", features = ["base64"] }
+chrono = "0.4"
 [features]
 default = ["digest_0_10","derive", "std", "alloc"]
 derive = ["digestible-macros"]
 std= []
 alloc = []
-# Will allow you to use digest on Atomic types. Ordering Relaxed is used.
-atomic = []
-# Will implement Digestible for F32 and F64
-float= []
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]

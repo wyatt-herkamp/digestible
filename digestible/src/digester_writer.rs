@@ -4,13 +4,7 @@ macro_rules! write_doc {
         write_doc!($num, $endian_write, "")
     };
     ($num:ty, $endian_write:ident,  float) => {
-        write_doc!($num, $endian_write, "
-        <h5><a href=\"#note\">Note</a></h5>
-        Precision! Remember that floats are funky and two floats that are basically same value will not always be the same bytes.
-        So if you decide to write floats you should be aware of this.
-        Maybe you should try rounding the floats to a certain precision before writing them.
-        Or even better round them to an integer. (if possible)All default implementations of this function support writing floats.
-        ")
+        write_doc!($num, $endian_write, "Please Read [Floats 32 and f64](digestible/index.html#floats-f32-f64)")
     };
     ($num:ty, $endian_write:ident, $other:literal) => {
         concat!("Writes a [`", stringify!($num), "`] to the underlying writer.",
@@ -47,12 +41,47 @@ macro_rules! define_write {
         )*
     };
 }
+macro_rules! deref_and_call_inner {
+    ($fnName:ident, $fnParam:ident: $fnType:ty) => {
+        #[inline(always)]
+        fn $fnName(&mut self, $fnParam: $fnType) {
+            (**self).$fnName($fnParam)
+        }
+    };
+    ($fnName:ident,ByteOrder, $fnParam:ident: $fnType:ty) => {
+        #[inline(always)]
+        fn $fnName<B: byteorder::ByteOrder>(&mut self, $fnParam: $fnType) {
+            (**self).$fnName::<B>($fnParam)
+        }
+    };
+    () => {
+        deref_and_call_inner!(write, data: &[u8]);
+        deref_and_call_inner!(write_bool, data: bool);
+        deref_and_call_inner!(write_u8, data: u8);
+        deref_and_call_inner!(write_i8, data: i8);
+        deref_and_call_inner!(write_str, data: &str);
+        deref_and_call_inner!(write_usize,ByteOrder, data: usize);
+        deref_and_call_inner!(write_isize, ByteOrder, data: isize);
+        deref_and_call_inner!(write_u16,ByteOrder, data: u16);
+        deref_and_call_inner!(write_u32,ByteOrder, data: u32);
+        deref_and_call_inner!(write_u64,ByteOrder, data: u64);
+        deref_and_call_inner!(write_u128,ByteOrder, data: u128);
+        deref_and_call_inner!(write_i16,ByteOrder, data: i16);
+        deref_and_call_inner!(write_i32,ByteOrder, data: i32);
+        deref_and_call_inner!(write_i64,ByteOrder, data: i64);
+        deref_and_call_inner!(write_i128,ByteOrder, data: i128);
+        deref_and_call_inner!(write_f32,ByteOrder, data: f32);
+        deref_and_call_inner!(write_f64,ByteOrder, data: f64);
 
+    };
+}
 /// A writer trait targeting an in memory buffer or the Digester itself.
+///
+/// This is what is passed into [`Digestible::digest`](crate::Digestible::digest)
 ///
 /// The default implementation just converts the data types to bytes and calls [`write`](DigestWriter::write)
 /// ## Default Implementations
-/// - [Vec<u8>] requires 'alloc'
+/// - [`Vec<u8>`] requires 'alloc'
 /// - [bytes::BytesMut] (requires the `bytes` feature)
 pub trait DigestWriter {
     /// Writes the data to the underlying writer.
@@ -126,15 +155,22 @@ pub trait DigestWriter {
         (f64, write_f64, 8, write_f64)
     );
 }
+impl<'a, T: DigestWriter> DigestWriter for &'a mut T {
+    deref_and_call_inner!();
+}
 #[cfg(feature = "alloc")]
 mod has_alloc {
     use crate::DigestWriter;
     use alloc::vec::Vec;
+    use alloc::boxed::Box;
 
     impl DigestWriter for Vec<u8> {
         fn write(&mut self, data: &[u8]) {
             self.extend_from_slice(data);
         }
+    }
+    impl<T: DigestWriter> DigestWriter for Box<T> {
+        deref_and_call_inner!();
     }
 }
 

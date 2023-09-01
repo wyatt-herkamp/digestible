@@ -1,10 +1,12 @@
-use crate::consts::{digest_path, digest_writer};
+use crate::consts::{digest_writer, digestible_path};
 use crate::container_attrs::{get_container_attrs, ContainerAttrs, TypeHeader};
 use crate::fields::Field;
+use crate::shared;
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use syn::DeriveInput;
 use syn::Result;
+
 pub enum EnumType {
     Unit,
     Tuple,
@@ -129,9 +131,13 @@ pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
         variants.push(variant);
     }
     let catch_block: Vec<_> = variants.iter().map(|v| v.catch_block(name)).collect();
-    let digestible = digest_path();
+    let digestible = digestible_path();
     let byte_order_path = crate::consts::byte_order_path();
-
+    let impl_hash = if let Some(impl_hash) = container_attrs.impl_hash {
+        shared::impl_hash(name, impl_hash)
+    } else {
+        quote! {}
+    };
     let result = quote! {
         const _: () = {
             #[allow(unused_extern_crates, clippy::useless_attribute)]
@@ -150,6 +156,7 @@ pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
                     }
                 }
             }
+            #impl_hash
         };
     };
 
