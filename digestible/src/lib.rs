@@ -2,12 +2,25 @@
 /*!
 # Digestible
 A more dynamic [Hash](core::hash::Hash) and [Hasher](core::hash::Hasher) trait for Rust
-## Key Difference.
-- ByteOrder is built in. So you can digest number types in any byte order.
+---
+
+## Key Difference over The Rust Hash and Hasher Traits
+- ByteOrder is built in. So you can digest number types in any byte order. [ByteOrder](byteorder)
 - Output is a Generic Associated Type.
-So you can Digest into a ByteArray, String with [Base64](ToBase64)
-or any other that the Digester implements.
-## Key Types
+  So you can Digest into a ByteArray,
+  String with [Base64](to_base64)
+  or any type the Digester uses.
+- Skip Fields with `#[digestible(skip)]`
+- 'digest_with' and 'with' to override the default digest behavior.
+[digest_with](https://docs.rs/digestible/0.2.0/digestible/digest_with/index.html)
+- Support for all Hashing Algorithms that implement [digest::Digest] such as SHA2, md-5, and many more.
+- Writing Type Headers to prevent collisions with similar types. (This is optional and can be disabled with `#[digestible(type_header = none)]`)
+---
+
+## Features
+- `no_std` Support
+- Digest to implement Digester for all types that implement [digest::Digest](https://docs.rs/digest/latest/digest/)
+- Float and Atomic Support using `digest_with`
 #### [Digestible](digestible::Digestible)
 A trait that allows you to digest data into a [Digester](digester::Digester)
 Equivalent to [Hash](core::hash::Hash) but with more control over the digesting process

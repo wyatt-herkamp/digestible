@@ -7,7 +7,7 @@ A more dynamic Hash and Hasher trait for Rust
 
 ---
 
-## Key Difference over STD Hash and Hashable
+## Key Difference over The Rust Hash and Hasher Traits
 - ByteOrder is built in. So you can digest number types in any byte order. [ByteOrder](https://docs.rs/byteorder/latest/byteorder/)
 - Output is a Generic Associated Type.
   So you can Digest into a ByteArray, 
@@ -20,7 +20,7 @@ A more dynamic Hash and Hasher trait for Rust
 ---
 
 ## Features
-- No STD Support
+- `no_std` Support
 - Digest to implement Digester for all types that implement [digest::Digest](https://docs.rs/digest/latest/digest/)
 - Float and Atomic Support using `digest_with`
 
