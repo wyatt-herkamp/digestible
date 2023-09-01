@@ -50,6 +50,9 @@ impl Parse for ContainerAttrs {
         let mut type_header = TypeHeader::default();
         let mut impl_hash = None;
         while !input.is_empty() {
+            if input.peek(syn::Token![,]) {
+                let _: syn::Token![,] = input.parse()?;
+            }
             let lookahead = input.lookahead1();
             if lookahead.peek(keywords::type_header) {
                 let _ = input.parse::<keywords::type_header>()?;

@@ -1,7 +1,6 @@
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
 use byteorder::{ByteOrder, NativeEndian};
-use chrono::NaiveDateTime;
 use digestible::digester::Digester;
 use digestible::to_base64::IntoBase64;
 use digestible::DigestWriter;
@@ -57,22 +56,10 @@ pub fn test_base64() {
 #[derive(Digestible)]
 pub struct TupleStruct(String);
 #[derive(Digestible)]
-pub struct CommonSimilarButDifferent {
-    pub active: bool,
-    #[digestible(digest_with = digest_with_hash)]
-    pub created: NaiveDateTime,
-}
-#[derive(Digestible)]
-pub struct SimilarButDifferentOne {
-    pub id: u32,
-    pub username: String,
-    pub common: CommonSimilarButDifferent,
-}
-#[derive(Digestible)]
-pub struct SimilarButDifferentTwo {
-    pub id: u32,
+#[digestible(hash = LittleEndian, type_header = None)]
+pub struct NoHeader{
     pub name: String,
-    pub common: CommonSimilarButDifferent,
+    pub id: u32,
 }
 #[derive(Digestible)]
 #[digestible(hash = LittleEndian)]

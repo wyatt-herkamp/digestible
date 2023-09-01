@@ -71,4 +71,5 @@ where
     fn digest<B: ByteOrder>(self, data: &impl Digestible) -> Self::Target {
         Self::encode_base64(self.0.digest::<B>(data))
     }
+
 }

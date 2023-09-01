@@ -14,10 +14,11 @@ So if you decide to write floats you should be aware of this.
 Maybe you should try rounding the floats to a certain precision before writing them.
 
 Or even better round them to an integer.
+You can use [digest_with](crate::digest_with::floats) to do this.
 
 ## rc::Weak and sync::Weak
 These will attempt an upgrade and then call the digest method on the result.
-This will just digest the [Option] if the upgrade fails.
+This will just digest the [Option](Option) that is returned.
 
 ## Option and Result
 These follow the same pattern as the STD library.

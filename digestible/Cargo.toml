@@ -1,6 +1,6 @@
 [package]
 name = "digestible"
-version = "0.2.0-rc.2"
+version = "0.2.0"
 edition = "2021"
 authors = ["Wyatt Herkamp <wherkamp@gmail.com>"]
 description = "A more dynamic Hash and Hasher interface"
@@ -16,7 +16,7 @@ rust-version="1.70"
 [dependencies]
 digest_0_10 = {package = "digest", version = "0.10", optional = true }
 byteorder = "1"
-digestible-macros= {path="../macros",optional = true, version = "0.2.0-rc.2" }
+digestible-macros= {path="../macros",optional = true, version = "0.2.0" }
 base64 = { version = "0.21", optional = true }
 bytes = { version = "1" , optional = true}
 [dev-dependencies]
@@ -24,7 +24,6 @@ sha2 = "0.10"
 base64 = "0.21"
 digestible-macros= {path="../macros"}
 digestible = { path = ".", features = ["base64"] }
-chrono = "0.4"
 [features]
 default = ["digest_0_10","derive", "std", "alloc"]
 derive = ["digestible-macros"]
