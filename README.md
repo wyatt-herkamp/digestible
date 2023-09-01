@@ -1,5 +1,5 @@
 # Digestible
-A better more dynamic Hash and Hashable trait for Rust
+A more dynamic Hash and Hashable trait for Rust
 
 
 ## Usage
@@ -49,3 +49,10 @@ This will be the default when you enable the `digest` feature.
 
 ### Chrono
 Chrono Types are implemented using the `hash` feature.
+
+### Float
+Implements Digestible for f32 and f64. 
+
+#### Notes
+The Digest Writer will always provide the write_f32 and write_f64 functions.
+

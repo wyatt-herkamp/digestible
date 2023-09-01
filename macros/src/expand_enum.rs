@@ -88,8 +88,9 @@ impl ToTokens for Variant<'_> {
         let ident = &self.ident;
         let writer = self.writer;
         let endian = self.endian;
+        let byte_order_path = crate::consts::byte_order_path();
         let result = quote! {
-            fn #fn_name<#endian: _digestible::ByteOrder, W: #digest_writer>(
+            fn #fn_name<#endian: #byte_order_path, W: #digest_writer>(
                 #writer: &mut W,
                 #(#fields_def),*
             ) {
@@ -129,6 +130,8 @@ pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
     }
     let catch_block: Vec<_> = variants.iter().map(|v| v.catch_block(name)).collect();
     let digestible = digest_path();
+    let byte_order_path = crate::consts::byte_order_path();
+
     let result = quote! {
         const _: () = {
             #[allow(unused_extern_crates, clippy::useless_attribute)]
@@ -136,7 +139,7 @@ pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
             #[automatically_derived]
             impl #digestible for #name {
                 #[allow(non_snake_case)]
-                fn digest<#order: _digestible::ByteOrder, W: _digestible::DigestWriter>(
+                fn digest<#order: #byte_order_path, W: _digestible::DigestWriter>(
                     &self,
                     writer: &mut W,
                 ) {

@@ -16,6 +16,7 @@ use byteorder::{ByteOrder, NativeEndian};
 
 /// A data type that can be converted into a digest.
 pub trait Digestible {
+    /// Writes the digest of this value into the given writer.
     fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W);
     #[inline(always)]
     fn digest_native<W: DigestWriter>(&self, writer: &mut W) {
@@ -32,16 +33,5 @@ pub trait Digestible {
 impl<'a, D: Digestible> Digestible for &'a D {
     fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
         (*self).digest::<B, W>(writer)
-    }
-}
-pub trait DigestWith {
-    type Digest;
-    fn digest<B: ByteOrder, W: DigestWriter>(digest: &Self::Digest, writer: &mut W);
-}
-
-pub struct ByteSlice<'a>(pub &'a [u8]);
-impl Digestible for ByteSlice<'_> {
-    fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
-        writer.write(self.0)
     }
 }

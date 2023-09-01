@@ -5,7 +5,9 @@ use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
 use byteorder::ByteOrder;
 use core::fmt::{Debug, Formatter};
-
+/// A Type Wrapper for a Digester that encodes the result into base64
+///
+/// Requires the `base64` feature
 pub struct ToBase64<D>(D);
 impl<D> ToBase64<D> {
     pub fn new(d: D) -> Self {
@@ -44,6 +46,10 @@ impl<D> AsMut<D> for ToBase64<D> {
     }
 }
 
+/// Add a method to all Digester types that turns the digester into a [ToBase64](crate::ToBase64) type
+///
+/// Automatically implement Digester types that implement [Digestible](crate::Digestible)
+/// with a Result that implements [AsRef](core::convert::AsRef) [u8]
 pub trait IntoBase64: Sized {
     fn into_base64(self) -> ToBase64<Self>;
 }
@@ -62,11 +68,7 @@ where
 {
     type Target = String;
 
-    fn digest<B: ByteOrder, DI: Digestible>(self, data: &DI) -> Self::Target {
-        Self::encode_base64(self.0.digest::<B, DI>(data))
-    }
-
-    fn digest_no_return<B: ByteOrder, DI: Digestible>(&mut self, data: &DI) {
-        self.0.digest_no_return::<B, DI>(data)
+    fn digest<B: ByteOrder>(self, data: &impl Digestible) -> Self::Target {
+        Self::encode_base64(self.0.digest::<B>(data))
     }
 }

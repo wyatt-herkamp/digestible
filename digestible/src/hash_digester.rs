@@ -33,7 +33,7 @@ macro_rules! map_to_hasher {
 ///         name: "Test".to_string(),
 ///     };
 ///     let mut my_digest = DigesterUsingHasher(&mut hasher);
-///     let result = my_digest.digest::<byteorder::NativeEndian,_>(&test);
+///     let result = my_digest.digest::<byteorder::NativeEndian>(&test);
 ///     println!("{:?}", result);
 pub struct DigesterUsingHasher<'h, H: Hasher>(pub &'h mut H);
 impl<H: Hasher> DigestWriter for DigesterUsingHasher<'_, H> {
@@ -60,12 +60,9 @@ impl<H: Hasher> DigestWriter for DigesterUsingHasher<'_, H> {
 }
 impl<H: Hasher> Digester for DigesterUsingHasher<'_, H> {
     type Target = u64;
-    fn digest<B: ByteOrder, D: Digestible>(mut self, data: &D) -> Self::Target {
-        self.digest_no_return::<B, D>(data);
+    fn digest<B: ByteOrder>(mut self, data: &impl Digestible) -> Self::Target {
+        data.hash(&mut self.0);
         self.0.finish()
-    }
-    fn digest_no_return<B: ByteOrder, D: Digestible>(&mut self, data: &D) {
-        data.digest::<B, _>(self)
     }
 }
 
@@ -91,7 +88,7 @@ impl<H: Hasher> Digester for DigesterUsingHasher<'_, H> {
 /// use byteorder::NativeEndian;
 /// let test = MyHashableType(0);
 /// let mut hasher = sha2::Sha256::new();
-/// let result = hasher.digest::<NativeEndian, _>(&test).to_vec();
+/// let result = hasher.digest::<NativeEndian>(&test).to_vec();
 /// println!("{:?}", result);
 /// ```
 pub struct HashableHack<'a, W: crate::DigestWriter>(&'a mut W);

@@ -63,15 +63,15 @@ digestible_for_num!(i16, write_i16);
 digestible_for_num!(i32, write_i32);
 digestible_for_num!(i64, write_i64);
 digestible_for_num!(i128, write_i128);
+#[cfg(feature = "float")]
 digestible_for_num!(f32, write_f32, no_hash);
+#[cfg(feature = "float")]
 digestible_for_num!(f64, write_f64, no_hash);
 
 digestible_for_num!(usize, write_usize);
 digestible_for_num!(isize, write_isize);
 
-
-
-impl<T: Digestible> Digestible for Option<T>{
+impl<T: Digestible> Digestible for Option<T> {
     fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
         match self {
             Some(value) => {
@@ -84,7 +84,7 @@ impl<T: Digestible> Digestible for Option<T>{
         }
     }
 }
-impl<S: Digestible, E: Digestible> Digestible for Result<S, E>{
+impl<S: Digestible, E: Digestible> Digestible for Result<S, E> {
     fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
         match self {
             Ok(value) => {
@@ -98,6 +98,6 @@ impl<S: Digestible, E: Digestible> Digestible for Result<S, E>{
         }
     }
 }
-impl Digestible for (){
+impl Digestible for () {
     fn digest<B: ByteOrder, W: DigestWriter>(&self, _: &mut W) {}
 }

@@ -1,4 +1,4 @@
-use crate::consts::{digest_path, digest_with as digest_with_path, hashable_hack};
+use crate::consts::{digest_path, hashable_hack};
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
@@ -119,9 +119,8 @@ impl ToTokens for Field<'_> {
         let endian = self.endian;
         let writer = self.writer;
         let result = if let Some(digest_with) = &self.attr.digest_with {
-            let digest_with_path = digest_with_path();
             quote! {
-                <#digest_with as #digest_with_path>::digest::<#endian,_>(#ident, #writer);
+                #digest_with::<#endian,_>(#ident, #writer);
             }
         } else {
             quote! {

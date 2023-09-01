@@ -3,22 +3,16 @@ use base64::Engine;
 use byteorder::{ByteOrder, NativeEndian};
 use chrono::NaiveDateTime;
 use digestible::digester::Digester;
-use digestible::digestible::DigestWith;
 use digestible::to_base64::IntoBase64;
 use digestible::DigestWriter;
 use digestible_macros::Digestible;
 use sha2::Digest;
 use std::time::Duration;
 
-pub struct DurationDigestWith;
-impl DigestWith for DurationDigestWith {
-    type Digest = Duration;
-
-    fn digest<B: ByteOrder, W: DigestWriter>(digest: &Self::Digest, writer: &mut W) {
-        writer.write(&digest.as_secs().to_ne_bytes());
-        writer.write(&digest.subsec_nanos().to_ne_bytes());
-    }
+fn duration_digest_with<B: ByteOrder, W: DigestWriter>(digest: &Duration, writer: &mut W) {
+    writer.write_u64::<B>(digest.as_secs());
 }
+
 #[derive(Digestible)]
 pub struct MyStruct {
     pub id: u32,
@@ -27,7 +21,7 @@ pub struct MyStruct {
     pub password: String,
     #[digestible(use_std_hash)]
     pub duration: Duration,
-    #[digestible(with = DurationDigestWith)]
+    #[digestible(with = duration_digest_with)]
     pub duration_two: Duration,
 }
 #[test]
@@ -40,7 +34,7 @@ pub fn test() {
         duration_two: Duration::from_secs(10),
     };
     let hasher = sha2::Sha256::new();
-    let result = hasher.digest::<NativeEndian, _>(&test);
+    let result = hasher.digest::<NativeEndian>(&test);
     let vec = STANDARD.encode(result.as_slice());
 
     println!("{:?}", vec);
@@ -55,7 +49,7 @@ pub fn test_base64() {
         duration_two: Duration::from_secs(10),
     };
     let hasher = sha2::Sha256::new().into_base64();
-    let result = hasher.digest::<NativeEndian, _>(&test);
+    let result = hasher.digest::<NativeEndian>(&test);
     println!("{:?}", result);
 }
 #[derive(Digestible)]

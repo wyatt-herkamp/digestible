@@ -51,7 +51,7 @@ mod tests {
     pub fn test_chrono() {
         let chrono_tests = ChronoTests::default();
         let hasher = sha2::Sha256::new().into_base64();
-        let result = hasher.digest::<NativeEndian, _>(&chrono_tests);
+        let result = hasher.digest::<NativeEndian>(&chrono_tests);
         println!("{}", result)
     }
 }

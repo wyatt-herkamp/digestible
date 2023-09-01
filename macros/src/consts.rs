@@ -9,6 +9,7 @@ pub fn digest_writer() -> Path {
 pub fn hashable_hack() -> Path {
     parse_quote!(_digestible::hash_digester::HashableHack)
 }
-pub fn digest_with() -> Path {
-    parse_quote!(_digestible::digestible::DigestWith)
+
+pub fn byte_order_path() -> Path {
+    parse_quote!(_digestible::byteorder::ByteOrder)
 }

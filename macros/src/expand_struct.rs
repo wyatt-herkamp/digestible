@@ -50,6 +50,8 @@ pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
             todo!("type_id")
         }
     };
+    let byte_order_path = crate::consts::byte_order_path();
+
     let digestible = digest_path();
     let result = quote! {
         const _: () = {
@@ -57,7 +59,7 @@ pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
             extern crate digestible as _digestible;
             #[automatically_derived]
             impl #digestible for #name {
-                fn digest<#order: _digestible::ByteOrder, W: _digestible::DigestWriter>(
+                fn digest<#order: #byte_order_path, W: _digestible::DigestWriter>(
                     &self,
                     writer: &mut W,
                 ) {
