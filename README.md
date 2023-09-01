@@ -3,7 +3,7 @@
 [actions]: https://github.com/wyatt-herkamp/digestible/actions?query=branch%3Amaster
 [Latest Version]: https://img.shields.io/crates/v/digestible.svg
 [crates.io]: https://crates.io/crates/digestible
-A more dynamic Hash and Hashable trait for Rust
+A more dynamic Hash and Hasher trait for Rust
 
 ---
 
