@@ -57,7 +57,7 @@ pub mod hash_digester;
 #[doc(inline)]
 pub use digester_writer::DigestWriter;
 #[cfg(feature = "derive")]
-#[doc = include_str!("../../digestible-macro.md")]
+#[doc = include_str!("digestible-macro.md")]
 pub use digestible_macros::Digestible;
 #[cfg(feature = "base64")]
 #[doc(inline)]
