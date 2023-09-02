@@ -57,9 +57,11 @@ pub fn test_base64() {
 pub struct TupleStruct(String);
 #[derive(Digestible)]
 #[digestible(hash = LittleEndian, type_header = None)]
-pub struct NoHeader{
+pub struct NoHeader {
     pub name: String,
     pub id: u32,
+    #[digestible(as_ref = u32)]
+    pub as_ref_test: Data<u32>,
 }
 #[derive(Digestible)]
 #[digestible(hash = LittleEndian)]
@@ -68,6 +70,12 @@ pub enum EnumExample {
     Two { name: String },
     None,
     Unit(String),
+}
+pub struct Data<T>(T);
+impl<T> AsRef<T> for Data<T> {
+    fn as_ref(&self) -> &T {
+        &self.0
+    }
 }
 #[test]
 pub fn hash_test() {

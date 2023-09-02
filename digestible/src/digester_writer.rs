@@ -161,8 +161,8 @@ impl<'a, T: DigestWriter> DigestWriter for &'a mut T {
 #[cfg(feature = "alloc")]
 mod has_alloc {
     use crate::DigestWriter;
-    use alloc::vec::Vec;
     use alloc::boxed::Box;
+    use alloc::vec::Vec;
 
     impl DigestWriter for Vec<u8> {
         fn write(&mut self, data: &[u8]) {

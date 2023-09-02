@@ -2,22 +2,25 @@ use crate::consts::{digest_with_path, digestible_path};
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
-use syn::Path;
+use syn::{parse_quote, Expr, Path, Type};
 
 mod keywords {
     use syn::custom_keyword;
     custom_keyword!(skip);
     custom_keyword!(with);
     custom_keyword!(digest_with);
+    custom_keyword!(as_ref);
 }
 #[derive(Debug, Default)]
 pub struct FieldAttr {
     pub skip: bool,
+    pub as_ref: Option<Type>,
     pub digest_with: Option<Path>,
 }
 impl Parse for FieldAttr {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut skip = false;
+        let mut as_ref = None;
         let mut digest_with: Option<Path> = None;
         while !input.is_empty() {
             let lookahead = input.lookahead1();
@@ -34,12 +37,20 @@ impl Parse for FieldAttr {
 
                 let internal_digest_with_path = digest_with_path(input.parse()?);
                 digest_with = Some(internal_digest_with_path);
+            } else if lookahead.peek(keywords::as_ref) {
+                let _ = input.parse::<keywords::as_ref>()?;
+                let _: syn::Token![=] = input.parse()?;
+                as_ref = Some(input.parse()?);
             } else {
                 return Err(lookahead.error());
             }
         }
 
-        let attr = Self { skip, digest_with };
+        let attr = Self {
+            skip,
+            as_ref,
+            digest_with,
+        };
         Ok(attr)
     }
 }
@@ -88,18 +99,26 @@ impl ToTokens for Field<'_> {
         }
         let digestible = digestible_path();
         let ident = &self.ident;
-        let ty = &self.ty;
+        let ty = if let Some(as_ref) = &self.attr.as_ref {
+            as_ref
+        } else {
+            &self.ty
+        };
         let endian = self.endian;
         let writer = self.writer;
+        let variable_ref: Expr = if self.attr.as_ref.is_some() {
+            parse_quote! {#ident.as_ref()}
+        } else {
+            parse_quote! {#ident}
+        };
         let result = if let Some(digest_with) = &self.attr.digest_with {
             quote! {
-                #digest_with::<#endian,_>(#ident, #writer);
+                #digest_with::<#endian,_>(#variable_ref, #writer);
             }
         } else {
-            quote! {
-                <#ty as #digestible>::digest::<#endian, _>(#ident, #writer);
-            }
+            quote! {<#ty as #digestible>::digest::<#endian, _>(#variable_ref,#writer);}
         };
+
         tokens.extend(result);
     }
 }

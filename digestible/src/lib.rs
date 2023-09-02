@@ -135,6 +135,8 @@ pub use digester_writer::DigestWriter;
 /// ```
 /// ### digest_with
 /// Function provided in the [digest_with](crate::digest_with) module Example: `#[digestible(digest_with = digest_with_hash)]`
+/// ### as_ref
+/// Will call as_ref on the field before digesting it. Example: `#[digestible(as_ref = TargetType)]`
 pub use digestible_macros::Digestible;
 #[cfg(feature = "base64")]
 #[doc(inline)]
