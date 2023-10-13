@@ -1,4 +1,4 @@
-mod consts;
+mod paths;
 mod container_attrs;
 mod expand_enum;
 mod expand_struct;

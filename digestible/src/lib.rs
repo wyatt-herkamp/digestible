@@ -70,6 +70,8 @@ pub mod digest_with;
 
 /// Provides inter-compatibility with [Hasher](core::hash::Hasher)/[Hash](core::hash::Hash) and [Digester](crate::Digester)/[Digestible](crate::Digestible)
 pub mod hash_digester;
+#[doc(hidden)]
+pub mod _private;
 
 #[doc(inline)]
 pub use digester_writer::DigestWriter;

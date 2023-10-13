@@ -4,3 +4,10 @@ members = [
     "digestible",
 ]
 resolver = "2"
+
+[workspace.package]
+version = "0.2.2"
+license = "MIT OR Apache-2.0"
+authors = ["Wyatt Jacob Herkamp <wherkamp@gmail.com>"]
+repository = "https://github.com/wyatt-herkamp/digestible"
+edition="2021"

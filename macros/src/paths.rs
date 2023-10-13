@@ -20,3 +20,11 @@ pub fn byte_order_path() -> Path {
 pub fn byte_order_impl_path(ident: Ident) -> Path {
     parse_quote!(_digestible::byteorder::#ident)
 }
+
+macro_rules! private_path {
+    // `()` indicates that the macro takes no argument.
+    ($key:ident) => {
+        syn::parse_quote!(_digestible::_private::$key)
+    };
+}
+pub(crate) use private_path;

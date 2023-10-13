@@ -1,10 +1,10 @@
 [package]
 name = "digestible"
-version = "0.2.1"
-edition = "2021"
-authors = ["Wyatt Herkamp <wherkamp@gmail.com>"]
+version.workspace=true
+edition.workspace=true
+authors.workspace=true
 description = "A more dynamic Hash and Hasher trait for Rust"
-license = "MIT OR Apache-2.0"
+license.workspace=true
 categories = ["cryptography","no-std"]
 keywords = ["digest", "crypto", "hash"]
 documentation = "https://docs.rs/digestible"
@@ -16,7 +16,7 @@ rust-version="1.70"
 [dependencies]
 digest_0_10 = {package = "digest", version = "0.10", optional = true }
 byteorder = "1"
-digestible-macros= {path="../macros",optional = true, version = "0.2.1" }
+digestible-macros= {path="../macros",optional = true, version = "0.2.2" }
 base64 = { version = "0.21", optional = true }
 bytes = { version = "1" , optional = true}
 [dev-dependencies]

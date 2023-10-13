@@ -88,5 +88,5 @@ macro_rules! get_container_attrs {
             .unwrap_or_default()
     };
 }
-use crate::consts::byte_order_impl_path;
+use crate::paths::byte_order_impl_path;
 pub(crate) use get_container_attrs;

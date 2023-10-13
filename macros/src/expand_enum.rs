@@ -1,10 +1,10 @@
-use crate::consts::{digest_writer, digestible_path};
+use crate::paths::{digest_writer, digestible_path, private_path};
 use crate::container_attrs::{get_container_attrs, ContainerAttrs, TypeHeader};
 use crate::fields::Field;
 use crate::shared;
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, ToTokens};
-use syn::DeriveInput;
+use syn::{DeriveInput, Path};
 use syn::Result;
 
 pub enum EnumType {
@@ -90,7 +90,7 @@ impl ToTokens for Variant<'_> {
         let ident = &self.ident;
         let writer = self.writer;
         let endian = self.endian;
-        let byte_order_path = crate::consts::byte_order_path();
+        let byte_order_path = crate::paths::byte_order_path();
         let result = quote! {
             fn #fn_name<#endian: #byte_order_path, W: #digest_writer>(
                 #writer: &mut W,
@@ -116,8 +116,10 @@ pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
     let header_write = match container_attrs.type_header {
         TypeHeader::None => quote! {},
         TypeHeader::HashName => {
+            let type_name : Path = private_path!(type_name);
+
             quote! {
-                #digest_writer::write(writer, core::any::type_name::<Self>().as_bytes());
+                #digest_writer::write(writer, #type_name::<Self>().as_bytes());
                 #digest_writer::write(writer, b"::");
             }
         }
@@ -132,7 +134,7 @@ pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
     }
     let catch_block: Vec<_> = variants.iter().map(|v| v.catch_block(name)).collect();
     let digestible = digestible_path();
-    let byte_order_path = crate::consts::byte_order_path();
+    let byte_order_path = crate::paths::byte_order_path();
     let impl_hash = if let Some(impl_hash) = container_attrs.impl_hash {
         shared::impl_hash(name, impl_hash)
     } else {
