@@ -1,6 +1,6 @@
 use syn::parse::{Parse, ParseStream};
 
-use syn::{parse_quote, Path};
+use syn::{Attribute, parse_quote, Path};
 
 #[derive(Debug)]
 pub enum TypeHeader {
@@ -77,16 +77,14 @@ impl Parse for ContainerAttrs {
         Ok(attr)
     }
 }
-macro_rules! get_container_attrs {
-    ($input:ident) => {
-        $input
-            .attrs
-            .iter()
-            .find(|v| v.path().is_ident("digestible"))
-            .map(|v| v.parse_args::<ContainerAttrs>())
-            .transpose()?
-            .unwrap_or_default()
-    };
+pub fn get_container_attrs(attrs: &[Attribute])-> syn::Result<ContainerAttrs> {
+    let attrs = attrs
+        .iter()
+        .find(|v| v.path().is_ident("digestible"))
+        .map(|v| v.parse_args::<ContainerAttrs>())
+        .transpose()?
+        .unwrap_or_default();
+    Ok(attrs)
 }
-use crate::paths::byte_order_impl_path;
-pub(crate) use get_container_attrs;
+
+use crate::utils::byte_order_impl_path;

@@ -1,7 +1,7 @@
-use crate::paths::{digest_writer, digestible_path, private_path};
-use crate::container_attrs::{get_container_attrs, ContainerAttrs, TypeHeader};
+use crate::utils::{digest_writer, digestible_path, private_path};
+use crate::container_attrs::{get_container_attrs, TypeHeader};
 use crate::fields::Field;
-use crate::shared;
+use crate::{ utils};
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use syn::{DeriveInput, Path};
@@ -43,28 +43,27 @@ impl<'a> Variant<'a> {
     pub fn catch_block(&self, enum_name: &Ident) -> TokenStream {
         let ident = &self.ident;
         let writer = self.writer;
-        let endian = self.endian;
         let fields: Vec<_> = self.fields.iter().map(|v| &v.ident).collect();
         let fn_name = format_ident!("digest_{}", self.ident);
         match self.enum_type {
             EnumType::Unit => {
                 quote! {
                     #enum_name::#ident => {
-                        #fn_name::<#endian, W>(#writer);
+                        #fn_name(#writer);
                     }
                 }
             }
             EnumType::Tuple => {
                 quote! {
                     #enum_name::#ident(#(#fields),*) => {
-                        #fn_name::<#endian, W>(#writer, #(#fields),*);
+                        #fn_name(#writer, #(#fields),*);
                     }
                 }
             }
             EnumType::Struct => {
                 quote! {
                     #enum_name::#ident{#(#fields),*} => {
-                        #fn_name::<#endian, W>(#writer, #(#fields),*);
+                        #fn_name(#writer, #(#fields),*);
                     }
                 }
             }
@@ -89,26 +88,32 @@ impl ToTokens for Variant<'_> {
         let digest_writer = digest_writer();
         let ident = &self.ident;
         let writer = self.writer;
-        let endian = self.endian;
-        let byte_order_path = crate::paths::byte_order_path();
         let result = quote! {
-            fn #fn_name<#endian: #byte_order_path, W: #digest_writer>(
-                #writer: &mut W,
-                #(#fields_def),*
-            ) {
+            let #fn_name = |#writer: &mut W, #(#fields_def),*| {
                 #digest_writer::write(writer, stringify!(#ident).as_bytes());
                 #(#fields)*
-            }
+            };
         };
         tokens.extend(result);
     }
 }
 pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
-    let name = &derive_input.ident;
-    let container_attrs = get_container_attrs!(derive_input);
-    let syn::Data::Enum(as_enum) = derive_input.data else {
-        unreachable!("digestible can only be derived for enums (expand_enum.rs)")
+
+    let DeriveInput {
+        attrs,
+        ident,
+        mut generics,
+        data,..
+    } = derive_input;
+    let syn::Data::Enum(as_enum) = data else {
+        //Checked before
+        unsafe{
+            std::hint::unreachable_unchecked();
+        }
     };
+    utils::add_digestible_trait(&mut generics);
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+    let container_attrs = get_container_attrs(&attrs)?;
 
     let writer = format_ident!("writer");
     let order = format_ident!("B");
@@ -132,11 +137,11 @@ pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
         let variant = Variant::new(variant, &order, &writer)?;
         variants.push(variant);
     }
-    let catch_block: Vec<_> = variants.iter().map(|v| v.catch_block(name)).collect();
+    let catch_block: Vec<_> = variants.iter().map(|v| v.catch_block(&ident)).collect();
     let digestible = digestible_path();
-    let byte_order_path = crate::paths::byte_order_path();
+    let byte_order_path = crate::utils::byte_order_path();
     let impl_hash = if let Some(impl_hash) = container_attrs.impl_hash {
-        shared::impl_hash(name, impl_hash)
+        utils::impl_hash(&ident, impl_hash, &impl_generics, &ty_generics, &where_clause)
     } else {
         quote! {}
     };
@@ -145,7 +150,7 @@ pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
             #[allow(unused_extern_crates, clippy::useless_attribute)]
             extern crate digestible as _digestible;
             #[automatically_derived]
-            impl #digestible for #name {
+            impl #impl_generics #digestible for #ident #ty_generics #where_clause {
                 #[allow(non_snake_case)]
                 fn digest<#order: #byte_order_path, W: _digestible::DigestWriter>(
                     &self,

@@ -1,4 +1,4 @@
-use crate::paths::{digest_with_path, digestible_path};
+use crate::utils::{digest_with_path, digestible_path};
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use syn::parse::{Parse, ParseStream};

@@ -1,17 +1,23 @@
-use crate::paths::{digest_writer, digestible_path, private_path};
-use crate::container_attrs::{get_container_attrs, ContainerAttrs, TypeHeader};
+use crate::utils::{digest_writer, digestible_path, private_path};
+use crate::container_attrs::{get_container_attrs, TypeHeader};
 use crate::fields::Field;
-use crate::shared;
+use crate::{utils};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use syn::{DeriveInput, Path};
 use syn::{Fields, Result};
 
 pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
-    let name = &derive_input.ident;
-    let container_attrs = get_container_attrs!(derive_input);
-    let syn::Data::Struct(as_struct) = derive_input.data else {
-        unreachable!("digestible can only be derived for enums (expand_struct.rs)")
+    let DeriveInput{ attrs, ident, mut generics, data,.. } = derive_input;
+    utils::add_digestible_trait(&mut generics);
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+
+    let container_attrs = get_container_attrs(&attrs)?;
+    let syn::Data::Struct(as_struct) = data else {
+        // This is checked before
+        unsafe{
+            std::hint::unreachable_unchecked();
+        }
     };
 
     let mut fields = Vec::with_capacity(as_struct.fields.len());
@@ -53,9 +59,9 @@ pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
             todo!("type_id")
         }
     };
-    let byte_order_path = crate::paths::byte_order_path();
+    let byte_order_path = utils::byte_order_path();
     let impl_hash = if let Some(impl_hash) = container_attrs.impl_hash {
-        shared::impl_hash(name, impl_hash)
+        utils::impl_hash(&ident, impl_hash, &impl_generics, &ty_generics, &where_clause)
     } else {
         quote! {}
     };
@@ -66,7 +72,7 @@ pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
             #[allow(unused_extern_crates, clippy::useless_attribute)]
             extern crate digestible as _digestible;
             #[automatically_derived]
-            impl #digestible for #name {
+            impl  #impl_generics  #digestible for #ident #ty_generics #where_clause {
                 fn digest<#order: #byte_order_path, W: _digestible::DigestWriter>(
                     &self,
                     writer: &mut W,
