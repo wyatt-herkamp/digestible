@@ -20,12 +20,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install toolchain
-        uses: actions-rs/toolchain@v1
+        uses: ructions/toolchain@v1
         with:
           toolchain: ${{ matrix.rust }}
           override: true
       - name: Run cargo test
-        uses: actions-rs/cargo@v1
+        uses: ructions/cargo@v1
         with:
           command: test
           args: --all-features
@@ -39,12 +39,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install toolchain
-        uses: actions-rs/toolchain@v1
+        uses: ructions/toolchain@v1
         with:
           toolchain: ${{ matrix.rust }}
           override: true
       - name: Run cargo test
-        uses: actions-rs/cargo@v1
+        uses: ructions/cargo@v1
         with:
           command: build
           args: --no-default-features
@@ -58,12 +58,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install toolchain
-        uses: actions-rs/toolchain@v1
+        uses: ructions/toolchain@v1
         with:
           toolchain: ${{ matrix.rust }}
           override: true
       - name: Run cargo test
-        uses: actions-rs/cargo@v1
+        uses: ructions/cargo@v1
         with:
           command: build
           args: --no-default-features --features alloc
