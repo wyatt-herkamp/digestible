@@ -1,21 +1,27 @@
-use crate::utils::{digest_writer, digestible_path, private_path};
 use crate::container_attrs::{get_container_attrs, TypeHeader};
 use crate::fields::Field;
-use crate::{utils};
+use crate::utils;
+use crate::utils::{digest_writer, digestible_path, private_path};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use syn::{DeriveInput, Path};
 use syn::{Fields, Result};
 
 pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
-    let DeriveInput{ attrs, ident, mut generics, data,.. } = derive_input;
+    let DeriveInput {
+        attrs,
+        ident,
+        mut generics,
+        data,
+        ..
+    } = derive_input;
     utils::add_digestible_trait(&mut generics);
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
     let container_attrs = get_container_attrs(&attrs)?;
     let syn::Data::Struct(as_struct) = data else {
         // This is checked before
-        unsafe{
+        unsafe {
             std::hint::unreachable_unchecked();
         }
     };
@@ -50,7 +56,7 @@ pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
     let header_write = match container_attrs.type_header {
         TypeHeader::None => quote! {},
         TypeHeader::HashName => {
-            let type_name : Path = private_path!(type_name);
+            let type_name: Path = private_path!(type_name);
             quote! {
                 #digest_writer::write(writer, #type_name::<Self>().as_bytes());
             }
@@ -61,7 +67,13 @@ pub(crate) fn expand(derive_input: DeriveInput) -> Result<TokenStream> {
     };
     let byte_order_path = utils::byte_order_path();
     let impl_hash = if let Some(impl_hash) = container_attrs.impl_hash {
-        utils::impl_hash(&ident, impl_hash, &impl_generics, &ty_generics, &where_clause)
+        utils::impl_hash(
+            &ident,
+            impl_hash,
+            &impl_generics,
+            &ty_generics,
+            &where_clause,
+        )
     } else {
         quote! {}
     };

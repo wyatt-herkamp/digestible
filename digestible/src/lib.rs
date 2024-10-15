@@ -68,10 +68,10 @@ pub use byteorder;
 /// Provides some sometimes useful digest_with implementations
 pub mod digest_with;
 
-/// Provides inter-compatibility with [Hasher](core::hash::Hasher)/[Hash](core::hash::Hash) and [Digester](crate::Digester)/[Digestible](crate::Digestible)
-pub mod hash_digester;
 #[doc(hidden)]
 pub mod _private;
+/// Provides inter-compatibility with [Hasher](core::hash::Hasher)/[Hash](core::hash::Hash) and [Digester](crate::Digester)/[Digestible](crate::Digestible)
+pub mod hash_digester;
 
 #[doc(inline)]
 pub use digester_writer::DigestWriter;

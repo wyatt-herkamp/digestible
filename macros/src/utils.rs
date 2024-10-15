@@ -1,5 +1,5 @@
 use proc_macro2::{Ident, TokenStream};
-use syn::{GenericParam, Generics, ImplGenerics, parse_quote, Path, TypeGenerics, WhereClause};
+use syn::{parse_quote, GenericParam, Generics, ImplGenerics, Path, TypeGenerics, WhereClause};
 
 pub fn digestible_path() -> Path {
     parse_quote!(_digestible::Digestible)
@@ -44,7 +44,13 @@ use quote::quote;
 
 /// Implements `Hash` for the container.
 /// Using Digestible
-pub fn impl_hash(container: &Ident, endian_path: Path, impl_generics: &ImplGenerics, ty_generics: &TypeGenerics, where_clause: &Option<&WhereClause>) -> TokenStream {
+pub fn impl_hash(
+    container: &Ident,
+    endian_path: Path,
+    impl_generics: &ImplGenerics,
+    ty_generics: &TypeGenerics,
+    where_clause: &Option<&WhereClause>,
+) -> TokenStream {
     let digester_using_hasher = digester_using_hasher();
     let digestible_path = digestible_path();
     let hash: Path = private_path!(Hash);

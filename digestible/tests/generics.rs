@@ -1,6 +1,6 @@
+use digestible::Digestible;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::Hash;
-use digestible::Digestible;
 
 #[derive(Digestible)]
 #[digestible(hash = LittleEndian)]
@@ -23,7 +23,6 @@ pub fn hash_test() {
     let mut default_hasher = DefaultHasher::new();
     test.hash(&mut default_hasher);
 }
-
 
 #[derive(Digestible)]
 pub enum MyEnum<T> {

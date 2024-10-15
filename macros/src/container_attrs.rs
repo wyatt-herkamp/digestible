@@ -1,6 +1,6 @@
 use syn::parse::{Parse, ParseStream};
 
-use syn::{Attribute, parse_quote, Path};
+use syn::{parse_quote, Attribute, Path};
 
 #[derive(Debug)]
 pub enum TypeHeader {
@@ -77,7 +77,7 @@ impl Parse for ContainerAttrs {
         Ok(attr)
     }
 }
-pub fn get_container_attrs(attrs: &[Attribute])-> syn::Result<ContainerAttrs> {
+pub fn get_container_attrs(attrs: &[Attribute]) -> syn::Result<ContainerAttrs> {
     let attrs = attrs
         .iter()
         .find(|v| v.path().is_ident("digestible"))
