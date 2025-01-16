@@ -34,6 +34,7 @@ macro_rules! digestible_for_num {
         impl Digestible for $num {
             /// Writes the digestible data to the writer.
             /// Using the native byte order
+            #[inline(always)]
             fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
                 writer.$write(*self)
             }
@@ -43,6 +44,7 @@ macro_rules! digestible_for_num {
         impl Digestible for $num {
             /// Writes the digestible data to the writer.
             /// Using the native byte order
+            #[inline(always)]
             fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
                 writer.$write::<B>(*self)
             }
@@ -93,3 +95,29 @@ impl<T: ?Sized> Digestible for PhantomData<T> {
     fn digest<B: ByteOrder, W: DigestWriter>(&self, _: &mut W) {}
 }
 impl_for_hashable_hack!(core::time::Duration);
+
+/// Digests an interator of digestible items
+#[inline(always)]
+pub(crate) fn digest_iter<'item, Item, B, W, I>(iter: I, writer: &mut W)
+where
+    Item: Digestible + 'item,
+    B: ByteOrder,
+    W: DigestWriter,
+    I: Iterator<Item = Item>,
+{
+    for item in iter {
+        item.digest::<B, W>(writer);
+    }
+}
+/// Digests an interator of digestible items
+#[inline(always)]
+pub(crate) fn digest_native_iter<'item, Item, W, I>(iter: I, writer: &mut W)
+where
+    Item: Digestible + 'item,
+    W: DigestWriter,
+    I: Iterator<Item = Item>,
+{
+    for item in iter {
+        item.digest_native::<W>(writer);
+    }
+}

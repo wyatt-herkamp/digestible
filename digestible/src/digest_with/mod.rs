@@ -64,3 +64,29 @@ pub fn digest_with_hash<B: ByteOrder, W: DigestWriter>(hash: &impl Hash, writer:
     let mut hashable_hack = HashableHack(writer);
     hash.hash(&mut hashable_hack);
 }
+
+/// Takes a type that implements [AsRef]<[str]> and writes it to the given writer.
+/// # Example
+/// ```
+/// use digestible::{Digester, Digestible};
+/// use sha2::{Digest, Sha256};
+/// #[derive(Default)]
+/// pub struct MyStrRefType(pub String);
+/// impl core::convert::AsRef<str> for MyStrRefType {
+///     fn as_ref(&self) -> &str {
+///         self.0.as_str()
+///     }
+/// }
+/// #[derive(Digestible, Default)]
+/// pub struct MyStruct {
+///     #[digestible(digest_with = digest_as_str_ref)]
+///     pub my_item: MyStrRefType,
+/// }
+///
+/// let mut hasher = sha2::Sha256::new();
+/// let result = hasher.digest_native(&MyStruct::default());
+/// assert_eq!(result.len(), 32);
+/// ```
+pub fn digest_as_str_ref<B: ByteOrder, W: DigestWriter>(hash: &impl AsRef<str>, writer: &mut W) {
+    writer.write_str(hash.as_ref());
+}

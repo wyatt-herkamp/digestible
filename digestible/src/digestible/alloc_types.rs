@@ -9,11 +9,14 @@ use alloc::sync::{Arc, Weak as WeakArc};
 use alloc::vec::Vec;
 use byteorder::ByteOrder;
 
+use super::core_types::{digest_iter, digest_native_iter};
+
 impl<T: Digestible> Digestible for Vec<T> {
     fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
-        for item in self {
-            item.digest::<B, W>(writer)
-        }
+        digest_iter::<_, B, W, _>(self.iter(), writer);
+    }
+    fn digest_native<W: DigestWriter>(&self, writer: &mut W) {
+        digest_native_iter::<_, W, _>(self.iter(), writer);
     }
 }
 impl_for_as_ref_u8!(String);

@@ -10,9 +10,15 @@ impl Digestible for () {
 macro_rules! tuple_configs {
     ($($T:ident),*) => {
         impl<$($T: Digestible),*> Digestible for ($($T),*) {
+            #[inline(always)]
             fn digest<ByteOrder: byteorder::ByteOrder, Writer: DigestWriter>(&self, writer: &mut Writer) {
                 let ($($T),*) = self;
                 $($T.digest::<ByteOrder, Writer>(writer);)*
+            }
+            #[inline(always)]
+            fn digest_native<Writer: DigestWriter>(&self, writer: &mut Writer) {
+                let ($($T),*) = self;
+                $($T.digest_native::<Writer>(writer);)*
             }
         }
     };

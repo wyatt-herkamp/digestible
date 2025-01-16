@@ -19,6 +19,10 @@ byteorder = "1"
 digestible-macros = { path = "../macros", optional = true, version = "0.2.2" }
 base64 = { version = "0.22", optional = true }
 bytes = { version = "1", optional = true }
+uuid = { version = "1", optional = true }
+serde_json = { version = "1", optional = true }
+# Enabling this feature will remove the need to use the `#[digestible(digest_with = digest_with_hash)]` on Chrono types
+chrono = { version = "0.4", optional = true }
 [dev-dependencies]
 sha2 = "0.10"
 base64 = "0.22"
@@ -29,6 +33,7 @@ default = ["digest_0_10", "derive", "std", "alloc"]
 derive = ["digestible-macros"]
 std = []
 alloc = []
+
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
