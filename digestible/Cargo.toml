@@ -27,7 +27,8 @@ chrono = { version = "0.4", optional = true }
 sha2 = "0.10"
 base64 = "0.22"
 digestible-macros = { path = "../macros" }
-digestible = { path = ".", features = ["base64"] }
+digestible = { path = ".", features = ["base64", "uuid"] }
+uuid = { version = "1", features = ["v4"] }
 [features]
 default = ["digest_0_10", "derive", "std", "alloc"]
 derive = ["digestible-macros"]

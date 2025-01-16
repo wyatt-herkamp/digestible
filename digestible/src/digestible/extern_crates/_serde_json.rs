@@ -39,3 +39,22 @@ impl Digestible for Number {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_digestible() {
+        use crate::Digestible;
+        use byteorder::LittleEndian;
+        use serde_json::json;
+        let value = json!({
+            "a": 1,
+            "b": 2,
+            "c": 3,
+            "d": 4,
+        });
+        let mut digest = Vec::new();
+        value.digest::<LittleEndian, _>(&mut digest);
+        println!("{:?}", digest);
+    }
+}

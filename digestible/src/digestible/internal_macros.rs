@@ -16,6 +16,7 @@ pub(super) use impl_for_hashable_hack;
 macro_rules! impl_for_as_ref_u8 {
     ($as_ref_u8:ty) => {
         impl $crate::Digestible for $as_ref_u8 {
+            #[inline(always)]
             fn digest<B: byteorder::ByteOrder, W: $crate::DigestWriter>(&self, writer: &mut W) {
                 writer.write(self.as_ref())
             }
@@ -28,6 +29,7 @@ pub(super) use impl_for_as_ref_u8;
 #[allow(unused_macros)]
 macro_rules! as_ref_then_call_inner {
     () => {
+        #[inline(always)]
         fn digest<B: byteorder::ByteOrder, W: $crate::DigestWriter>(&self, writer: &mut W) {
             self.as_ref().digest::<B, W>(writer)
         }
