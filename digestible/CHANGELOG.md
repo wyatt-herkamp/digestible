@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.2.4](https://github.com/wyatt-herkamp/digestible/compare/digestible-v0.2.3...digestible-v0.2.4) - 2025-02-04
+
+### Other
+
+- Fix Hash And HashSet implementation
+
 ## 0.2.3 (Unreleased)
 - Implement Digestible for [std::collections::{HashMap, HashSet}](https://doc.rust-lang.org/std/collections/index.html)
 - Implement Digestible for [alloc::collections::{BTreeMap, BTreeSet, BinaryHeap, LinkedList, VecDeque}](https://doc.rust-lang.org/alloc/collections/index.html)
