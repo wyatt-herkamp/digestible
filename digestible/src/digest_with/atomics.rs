@@ -37,7 +37,7 @@ pub trait AtomicType {
     /// Loads the atomic with the given ordering
     fn load(&self, order: Ordering) -> Self::TargetType;
 }
-impl<'a, T: AtomicType> AtomicType for &'a T {
+impl<T: AtomicType> AtomicType for &T {
     type TargetType = T::TargetType;
 
     fn load(&self, order: Ordering) -> Self::TargetType {

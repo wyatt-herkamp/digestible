@@ -48,7 +48,7 @@ pub trait Digestible {
     }
 }
 
-impl<'a, D: Digestible> Digestible for &'a D {
+impl<D: Digestible> Digestible for &D {
     fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
         (*self).digest::<B, W>(writer)
     }

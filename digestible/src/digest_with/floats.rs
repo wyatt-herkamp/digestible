@@ -61,10 +61,10 @@ macro_rules! de_ref_then_call_inner {
         }
     };
 }
-impl<'a, F: FloatType + Copy> FloatType for &'a F {
+impl<F: FloatType + Copy> FloatType for &F {
     de_ref_then_call_inner!(deref: F);
 }
-impl<'a, T: FloatType + Copy> FloatType for &'a Option<T> {
+impl<T: FloatType + Copy> FloatType for &Option<T> {
     type TargetInt = Option<T::TargetInt>;
     #[inline(always)]
     fn ceil(self) -> Self::TargetInt {

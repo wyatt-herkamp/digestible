@@ -67,12 +67,12 @@ pub trait Digester {
 /// Automatically implement Digester for all types that implement [Digest](digest::Digest)
 ///
 /// Giving you access to use [sha2](https://crates.io/crates/sha2), [sha1](https://crates.io/crates/sha1), [md-5](https://crates.io/crates/md-5) and more
-#[cfg(feature = "digest_0_10")]
-mod digest_0_10 {
+#[cfg(feature = "digest_0_11")]
+mod digest_0_11 {
     use crate::digester::Digester;
     use crate::digestible::Digestible;
     use byteorder::ByteOrder;
-    use digest_0_10::{Digest, Output};
+    use digest_0_11::{Digest, Output};
     impl<T: Digest> Digester for T {
         type Target = Output<T>;
         fn digest<B: ByteOrder>(mut self, data: &impl Digestible) -> Self::Target {

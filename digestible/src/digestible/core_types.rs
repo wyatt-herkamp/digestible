@@ -4,7 +4,7 @@ use crate::DigestWriter;
 use byteorder::ByteOrder;
 use core::marker::PhantomData;
 
-impl<'a, T: Digestible> Digestible for &'a [T] {
+impl<T: Digestible> Digestible for &[T] {
     #[inline(always)]
     fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
         for item in *self {
@@ -12,7 +12,7 @@ impl<'a, T: Digestible> Digestible for &'a [T] {
         }
     }
 }
-impl<'str> Digestible for &'str str {
+impl Digestible for &str {
     fn digest<B: ByteOrder, W: DigestWriter>(&self, writer: &mut W) {
         writer.write(self.as_bytes())
     }

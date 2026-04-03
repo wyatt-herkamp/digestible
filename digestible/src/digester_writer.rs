@@ -155,7 +155,7 @@ pub trait DigestWriter {
         (f64, write_f64, 8, write_f64)
     );
 }
-impl<'a, T: DigestWriter> DigestWriter for &'a mut T {
+impl<T: DigestWriter> DigestWriter for &mut T {
     deref_and_call_inner!();
 }
 #[cfg(feature = "alloc")]

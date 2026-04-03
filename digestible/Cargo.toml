@@ -10,13 +10,13 @@ keywords = ["digest", "crypto", "hash"]
 documentation = "https://docs.rs/digestible"
 repository = "https://github.com/wyatt-herkamp/digestible"
 readme = "../README.md"
-rust-version = "1.70"
+rust-version = "1.85"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-digest_0_10 = { package = "digest", version = "0.10", optional = true }
+digest_0_11 = { package = "digest", version = "0.11", optional = true }
 byteorder = "1"
-digestible-macros = { path = "../macros", optional = true, version = "0.2.3" }
+digestible-macros = { path = "../macros", optional = true, version = "0.3.0" }
 base64 = { version = "0.22", optional = true }
 bytes = { version = "1", optional = true }
 uuid = { version = "1", optional = true }
@@ -24,13 +24,13 @@ serde_json = { version = "1", optional = true }
 # Enabling this feature will remove the need to use the `#[digestible(digest_with = digest_with_hash)]` on Chrono types
 chrono = { version = "0.4", optional = true }
 [dev-dependencies]
-sha2 = "0.10"
+sha2 = "0.11"
 base64 = "0.22"
 digestible-macros = { path = "../macros" }
 digestible = { path = ".", features = ["base64", "uuid"] }
 uuid = { version = "1", features = ["v4"] }
 [features]
-default = ["digest_0_10", "derive", "std", "alloc"]
+default = ["digest_0_11", "derive", "std", "alloc"]
 derive = ["digestible-macros"]
 std = []
 alloc = []

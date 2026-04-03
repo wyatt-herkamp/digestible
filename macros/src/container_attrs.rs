@@ -3,18 +3,15 @@ use syn::parse::{Parse, ParseStream};
 use syn::{parse_quote, Attribute, Path};
 
 #[derive(Debug)]
+#[derive(Default)]
 pub enum TypeHeader {
     None,
+    #[default]
     HashName,
     #[allow(dead_code)]
     TypeId {
         path_to_type_id_gen: Path,
     },
-}
-impl Default for TypeHeader {
-    fn default() -> Self {
-        Self::HashName
-    }
 }
 impl Parse for TypeHeader {
     fn parse(input: ParseStream) -> syn::Result<Self> {
