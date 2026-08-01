@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-## 0.3.0 (Unreleased)
+## 0.3.0 (2026-08-01)
 - Update to digest 0.11
 - Implement Digestible for [std::collections::{HashMap, HashSet}](https://doc.rust-lang.org/std/collections/index.html)
 - Implement Digestible for [alloc::collections::{BTreeMap, BTreeSet, BinaryHeap, LinkedList, VecDeque}](https://doc.rust-lang.org/alloc/collections/index.html)
