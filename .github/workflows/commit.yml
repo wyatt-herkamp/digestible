@@ -16,7 +16,7 @@ jobs:
       matrix:
         rust:
           - stable
-          - 1.70.0
+          - 1.85.0
     steps:
       - uses: actions/checkout@v4
       - name: Install toolchain
@@ -31,7 +31,7 @@ jobs:
       matrix:
         rust:
           - stable
-          - 1.70.0
+          - 1.85.0
     steps:
       - uses: actions/checkout@v4
       - name: Install toolchain
@@ -46,7 +46,7 @@ jobs:
       matrix:
         rust:
           - stable
-          - 1.70.0
+          - 1.85.0
     steps:
       - uses: actions/checkout@v4
       - name: Install toolchain
