@@ -8,3 +8,6 @@ mod _uuid;
 
 #[cfg(feature = "chrono")]
 mod _chrono;
+
+#[cfg(feature = "jiff")]
+mod _jiff;

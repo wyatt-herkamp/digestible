@@ -8,7 +8,7 @@ license.workspace = true
 categories = ["cryptography", "no-std"]
 keywords = ["digest", "crypto", "hash"]
 documentation = "https://docs.rs/digestible"
-repository = "https://github.com/wyatt-herkamp/digestible"
+repository.workspace = true
 readme = "../README.md"
 rust-version = "1.85"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -17,15 +17,17 @@ rust-version = "1.85"
 digest_0_11 = { package = "digest", version = "0.11", optional = true }
 byteorder = "1"
 digestible-macros = { path = "../macros", optional = true, version = "0.3.0" }
-base64 = { version = "0.22", optional = true }
+base64 = { version = "0.23", optional = true }
 bytes = { version = "1", optional = true }
 uuid = { version = "1", optional = true }
 serde_json = { version = "1", optional = true }
 # Enabling this feature will remove the need to use the `#[digestible(digest_with = digest_with_hash)]` on Chrono types
 chrono = { version = "0.4", optional = true }
+# Enabling this feature will remove the need to use the `#[digestible(digest_with = digest_with_hash)]` on Jiff types
+jiff = { version = "1", optional = true }
 [dev-dependencies]
 sha2 = "0.11"
-base64 = "0.22"
+base64 = "0.23"
 digestible-macros = { path = "../macros" }
 digestible = { path = ".", features = ["base64", "uuid"] }
 uuid = { version = "1", features = ["v4"] }
